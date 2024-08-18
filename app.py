@@ -21,10 +21,38 @@ BOOKS = [
 	  }
 ]
 
-# sanity check route
+CARDS = [
+    {
+        'status': 'To Do',
+        'text': 'to do card'
+    },
+    {
+        'status': 'In Progress',
+        'text': 'in progress card'
+    },
+    {
+        'status': 'Done',
+        'text': 'done card'
+    }
+]
+
 @app.route('/ping', methods=['GET'])
 def ping_pong():
     return jsonify('pong!')
+
+@app.route('/kanban', methods=['GET', 'POST'])
+def all_cards():
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        post_data = request.get_json()
+        CARDS.append({
+            'status': post_data.get('status'),
+            'text': post_data.get('text'),
+        })
+        response_object['message'] = 'Card added!'
+    else:
+        response_object['cards'] = CARDS
+    return jsonify(response_object)
 
 @app.route('/books', methods=['GET', 'POST'])
 def all_books():

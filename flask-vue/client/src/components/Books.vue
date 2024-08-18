@@ -125,15 +125,15 @@ export default {
     return {
       books: [],
       addBookForm: {
-        title: '',
+        title: 'title',
         author: '',
-        read: [],
+        read: false,
       },
       editForm: {
         id: '',
         title: '',
         author: '',
-        read: [],
+        read: false,
       },
       message: '',
       showMessage: false,
@@ -171,17 +171,17 @@ export default {
     initForm() {
       this.addBookForm.title = '';
       this.addBookForm.author = '';
-      this.addBookForm.read = [];
+      this.addBookForm.read = this.book.read;
       this.editForm.id = '';
       this.editForm.title = '';
       this.editForm.author = '';
-      this.editForm.read = [];
+      this.editForm.read = this.book.read;
     },
     onSubmit(evt) {
       evt.preventDefault();
       this.$refs.addBookModal.hide();
       let read = false;
-      if (this.addBookForm.read[0]) read = true;
+      if (this.addBookForm.read) read = true;
       const payload = {
         title: this.addBookForm.title,
         author: this.addBookForm.author,
@@ -199,7 +199,7 @@ export default {
       evt.preventDefault();
       this.$refs.editBookModal.hide();
       let read = false;
-      if (this.editForm.read[0]) read = true;
+      if (this.editForm.read) read = true;
       const payload = {
         title: this.editForm.title,
         author: this.editForm.author,
