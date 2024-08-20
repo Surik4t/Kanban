@@ -2,7 +2,9 @@
   <div class="column">
     <h2>{{ title }}</h2>
     <div class="cards">
-      <Card v-for="(card, index) in cards" :key="index" :text="card.text" />
+      <Card v-for="(card, index) in cards" :key="index" :text="card.text"
+      @delete-button-clicked="handleClick"
+      />
     </div>
     <input v-model="newCardText" placeholder="Add new card" @keyup.enter="submitCard" />
   </div>
@@ -27,6 +29,9 @@ export default {
         this.$emit('add-card', this.newCardText);
         this.newCardText = '';
       }
+    },
+    handleClick() {
+      this.$emit('delete-button-clicked');
     },
   },
 };

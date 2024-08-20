@@ -1,5 +1,6 @@
 <template>
   <div class="board">
+    <h1 :testMessage="testMessage"> {{ testMessage }} </h1>
     <h1>Kanban Board</h1>
     <div class="columns">
       <Column
@@ -8,6 +9,7 @@
         :title="column.title"
         :cards="column.cards"
         @add-card="addCard(index, $event)"
+        @delete-button-clicked="OnButtonClicked"
       />
     </div>
   </div>
@@ -29,6 +31,7 @@ export default {
         { title: 'Done', cards: [] },
       ],
       cards: [],
+      testMessage: 'TEST',
     };
   },
   methods: {
@@ -60,6 +63,9 @@ export default {
           console.error(error);
           this.getCards();
         });
+    },
+    OnButtonClicked() {
+      this.testMessage = 'Clicked!';
     },
   },
   created() {

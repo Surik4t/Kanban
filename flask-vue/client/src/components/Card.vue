@@ -1,12 +1,25 @@
 <template>
   <div class="card">
-    {{ text }}
+    <div class="top">
+      {{ text }}
+      <b-button
+        pill variant="danger"
+        id="deleteButton"
+        @click="handleClick">
+        Delete card
+      </b-button>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
   props: ['text'],
+  methods: {
+    handleClick() {
+      this.$emit('delete-button-clicked');
+    },
+  },
 };
 </script>
 
