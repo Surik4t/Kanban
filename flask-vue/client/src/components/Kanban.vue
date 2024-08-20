@@ -64,8 +64,18 @@ export default {
           this.getCards();
         });
     },
-    OnButtonClicked() {
-      this.testMessage = 'Clicked!';
+    OnButtonClicked(cardId) {
+      this.testMessage = cardId;
+      const path = `http://localhost:5000/kanban/${cardId}`;
+      axios.delete(path)
+        .then(() => {
+          this.getCards();
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+          this.getCards();
+        });
     },
   },
   created() {
@@ -77,6 +87,7 @@ export default {
 <style scoped>
 .board {
   padding: 20px;
+  background-color: #576769;
 }
 
 .columns {

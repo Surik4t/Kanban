@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import logging
 import uuid
 
 # configuration
@@ -23,14 +24,17 @@ BOOKS = [
 
 CARDS = [
     {
+        'id': uuid.uuid4().hex,
         'status': 'To Do',
         'text': 'to do card'
     },
     {
+        'id': uuid.uuid4().hex,
         'status': 'In Progress',
         'text': 'in progress card'
     },
     {
+        'id': uuid.uuid4().hex,
         'status': 'Done',
         'text': 'done card'
     }
@@ -45,14 +49,30 @@ def all_cards():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         post_data = request.get_json()
-        CARDS.append({
+        new_card = {
+            'id': uuid.uuid4().hex,
             'status': post_data.get('status'),
             'text': post_data.get('text'),
-        })
-        response_object['message'] = 'Card added!'
+        }
+        app.logger.info(f'card ID: {new_card['id']}')
+        CARDS.append(new_card)
+        print(CARDS)
     else:
         response_object['cards'] = CARDS
     return jsonify(response_object)
+
+@app.route('/kanban/<card_id>', methods=['DELETE', 'PUT'])
+def single_card(card_id):
+    response_object = {'status': 'success'}
+
+    if request.method == 'PUT':
+        return
+    if request.method == 'DELETE':
+        for card in CARDS:
+            if card_id == card['id']:
+                CARDS.remove(card)
+        return jsonify(response_object)
+        
 
 @app.route('/books', methods=['GET', 'POST'])
 def all_books():

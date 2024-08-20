@@ -2,7 +2,10 @@
   <div class="column">
     <h2>{{ title }}</h2>
     <div class="cards">
-      <Card v-for="(card, index) in cards" :key="index" :text="card.text"
+      <Card v-for="(card, index) in cards" :key="index"
+      :id="card.id"
+      :status="card.status"
+      :text="card.text"
       @delete-button-clicked="handleClick"
       />
     </div>
@@ -30,8 +33,8 @@ export default {
         this.newCardText = '';
       }
     },
-    handleClick() {
-      this.$emit('delete-button-clicked');
+    handleClick(cardId) {
+      this.$emit('delete-button-clicked', cardId);
     },
   },
 };

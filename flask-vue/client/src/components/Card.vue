@@ -14,10 +14,12 @@
 
 <script>
 export default {
-  props: ['text'],
+  props: ['id', 'status', 'text'],
   methods: {
     handleClick() {
-      this.$emit('delete-button-clicked');
+      // eslint-disable-next-line
+      console.log(this.id);
+      this.$emit('delete-button-clicked', this.id);
     },
   },
 };
