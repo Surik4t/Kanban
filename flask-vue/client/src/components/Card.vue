@@ -5,7 +5,7 @@
       <b-button
         pill variant="danger"
         id="deleteButton"
-        @click="handleClick">
+        @click="handleDeleteCardButton">
         Delete card
       </b-button>
     </div>
@@ -21,10 +21,10 @@ export default {
     'text',
   ],
   methods: {
-    handleClick() {
+    handleDeleteCardButton() {
       // eslint-disable-next-line
       console.log(this.id);
-      this.$emit('delete-button-clicked', this.id);
+      this.$emit('delete-card-button-clicked', this.id);
     },
   },
 };

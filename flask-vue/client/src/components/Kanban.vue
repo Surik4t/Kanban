@@ -12,10 +12,12 @@
       <Column
         v-for="(column, index) in columns"
         :key="index"
+        :id="column.id"
         :title="column.title"
         :cards="column.cards"
         @add-card="addCard(index, $event)"
-        @delete-button-clicked="OnButtonClicked"
+        @delete-column-button-clicked="onDeleteColumnButtonClicked"
+        @delete-card-button-clicked="onDeleteCardButtonClicked"
       />
     </div>
   </div>
@@ -63,6 +65,20 @@ export default {
           this.getCards();
         });
     },
+    onDeleteColumnButtonClicked(columnId) {
+      const path = `http://localhost:5000/kanban/columns/${columnId}`;
+      axios.delete(path)
+        .then(() => {
+          this.getColumns();
+          this.getCards();
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+          this.getColumns();
+          this.getCards();
+        });
+    },
     getCards() {
       const path = 'http://localhost:5000/kanban/cards';
       axios.get(path)
@@ -92,7 +108,7 @@ export default {
           this.getCards();
         });
     },
-    OnButtonClicked(cardId) {
+    onDeleteCardButtonClicked(cardId) {
       this.testMessage = cardId;
       const path = `http://localhost:5000/kanban/cards/${cardId}`;
       axios.delete(path)

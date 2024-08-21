@@ -1,13 +1,27 @@
 <template>
   <div class="column">
-    <h2>{{ title }}</h2>
+    <div class="d-flex justify-content-between">
+      <h2>{{ title }}</h2>
+      <div class="d-flex justify-content-right">
+        <b-button id="rename column"
+          pill variant="primary">
+          🖍
+        </b-button>
+        <b-button
+          pill variant="danger"
+          id="deleteColumn"
+          @click="handleDeleteColumnButton">
+          X
+        </b-button>
+      </div>
+    </div>
     <div class="cards">
       <Card v-for="(card, index) in cards" :key="index"
       :id="card.id"
       :columnId="card.columnId"
       :status="card.status"
       :text="card.text"
-      @delete-button-clicked="handleClick"
+      @delete-card-button-clicked="handleDeleteCardButton"
       />
     </div>
     <input v-model="newCardText" placeholder="Add new card" @keyup.enter="submitCard" />
@@ -22,9 +36,9 @@ export default {
     Card,
   },
   props: [
+    'id',
     'title',
     'cards',
-    'id',
   ],
   data() {
     return {
@@ -38,9 +52,16 @@ export default {
         this.newCardText = '';
       }
     },
-    handleClick(cardId) {
-      this.$emit('delete-button-clicked', cardId);
+    handleDeleteCardButton(cardId) {
+      this.$emit('delete-card-button-clicked', cardId);
     },
+    handleDeleteColumnButton() {
+      this.$emit('delete-column-button-clicked', this.id);
+    },
+  },
+  created() {
+    // eslint-disable-next-line
+    console.log('Column created with ID:', this.id);
   },
 };
 </script>
@@ -51,6 +72,7 @@ export default {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  margin-right: 5px;
 }
 
 .cards {

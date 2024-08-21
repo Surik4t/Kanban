@@ -32,11 +32,6 @@ COLUMNS = [
 
 CARDS = []
 
-@app.route('/ping', methods=['GET'])
-def ping_pong():
-    return jsonify('pong!')
-
-
 # COLUMN METHODS
 @app.route('/kanban/columns', methods=['GET', 'POST'])
 def all_columns():
@@ -53,6 +48,17 @@ def all_columns():
     else:
         response_object['columns'] = COLUMNS
     return jsonify(response_object)
+
+@app.route('/kanban/columns/<column_id>', methods=['DELETE', 'PUT'])
+def single_column(column_id):
+    response_object = {'status': 'success'}
+    if request.method == 'PUT':
+        return
+    if request.method == 'DELETE':
+        empty_colomn(column_id)
+        global COLUMNS
+        COLUMNS = [column for column in COLUMNS if column['id'] != column_id]
+        return jsonify(response_object)
 
 
 # CARD METHODS
@@ -85,6 +91,9 @@ def single_card(card_id):
                 CARDS.remove(card)
         return jsonify(response_object)
         
+def empty_colomn(column_id):
+    global CARDS
+    CARDS = [card for card in CARDS if card['columnId'] != column_id]
 
 # BOOK METHODS 
 @app.route('/books', methods=['GET', 'POST'])
