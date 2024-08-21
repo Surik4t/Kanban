@@ -2,6 +2,12 @@
   <div class="board">
     <h1 :testMessage="testMessage"> {{ testMessage }} </h1>
     <h1>Kanban Board</h1>
+    <b-button
+        pill variant="success"
+        id="addColumn"
+        @click="addColumn()">
+        +
+    </b-button>
     <div class="columns">
       <Column
         v-for="(column, index) in columns"
@@ -25,25 +31,47 @@ export default {
   },
   data() {
     return {
-      columns: [
-        { title: 'To Do', cards: [] },
-        { title: 'In Progress', cards: [] },
-        { title: 'Done', cards: [] },
-      ],
+      columns: [],
       cards: [],
       testMessage: 'TEST',
     };
   },
   methods: {
+    getColumns() {
+      const path = 'http://localhost:5000/kanban/columns';
+      axios.get(path)
+        .then((res) => {
+          this.columns = res.data.columns;
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+        });
+    },
+    addColumn() {
+      const path = 'http://localhost:5000/kanban/columns';
+      const payload = { title: 'New Column' };
+      axios.post(path, payload)
+        .then(() => {
+          this.getColumns();
+          this.getCards();
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+          this.getColumns();
+          this.getCards();
+        });
+    },
     getCards() {
-      const path = 'http://localhost:5000/kanban';
+      const path = 'http://localhost:5000/kanban/cards';
       axios.get(path)
         .then((res) => {
           this.cards = res.data.cards;
           // eslint-disable-next-line
           this.columns.forEach(column => {
             // eslint-disable-next-line
-            column.cards = this.cards.filter(card => card.status === column.title);
+            column.cards = this.cards.filter(card => card.columnId === column.id);
           });
         })
         .catch((error) => {
@@ -52,8 +80,8 @@ export default {
         });
     },
     addCard(columnIndex, cardText) {
-      const path = 'http://localhost:5000/kanban';
-      const payload = { text: cardText, status: this.columns[columnIndex].title };
+      const path = 'http://localhost:5000/kanban/cards';
+      const payload = { text: cardText, columnId: this.columns[columnIndex].id };
       axios.post(path, payload)
         .then(() => {
           this.getCards();
@@ -66,7 +94,7 @@ export default {
     },
     OnButtonClicked(cardId) {
       this.testMessage = cardId;
-      const path = `http://localhost:5000/kanban/${cardId}`;
+      const path = `http://localhost:5000/kanban/cards/${cardId}`;
       axios.delete(path)
         .then(() => {
           this.getCards();
@@ -79,6 +107,7 @@ export default {
     },
   },
   created() {
+    this.getColumns();
     this.getCards();
   },
 };

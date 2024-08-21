@@ -4,6 +4,7 @@
     <div class="cards">
       <Card v-for="(card, index) in cards" :key="index"
       :id="card.id"
+      :columnId="card.columnId"
       :status="card.status"
       :text="card.text"
       @delete-button-clicked="handleClick"
@@ -20,7 +21,11 @@ export default {
   components: {
     Card,
   },
-  props: ['title', 'cards'],
+  props: [
+    'title',
+    'cards',
+    'id',
+  ],
   data() {
     return {
       newCardText: '',

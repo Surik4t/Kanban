@@ -22,46 +22,58 @@ BOOKS = [
 	  }
 ]
 
-CARDS = [
+COLUMNS = [
     {
         'id': uuid.uuid4().hex,
-        'status': 'To Do',
-        'text': 'to do card'
-    },
-    {
-        'id': uuid.uuid4().hex,
-        'status': 'In Progress',
-        'text': 'in progress card'
-    },
-    {
-        'id': uuid.uuid4().hex,
-        'status': 'Done',
-        'text': 'done card'
+        'title': 'TEST',
+        'cards': []
     }
 ]
+
+CARDS = []
 
 @app.route('/ping', methods=['GET'])
 def ping_pong():
     return jsonify('pong!')
 
-@app.route('/kanban', methods=['GET', 'POST'])
+
+# COLUMN METHODS
+@app.route('/kanban/columns', methods=['GET', 'POST'])
+def all_columns():
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        post_data = request.get_json()
+        new_column = {
+            'id': uuid.uuid4().hex,
+            'title': post_data.get('title'),
+            'cards': []
+        }
+        app.logger.info(f'column ID: {new_column['id']}')
+        COLUMNS.append(new_column)
+    else:
+        response_object['columns'] = COLUMNS
+    return jsonify(response_object)
+
+
+# CARD METHODS
+@app.route('/kanban/cards', methods=['GET', 'POST'])
 def all_cards():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         post_data = request.get_json()
         new_card = {
             'id': uuid.uuid4().hex,
+            'columnId': post_data.get('columnId'),
             'status': post_data.get('status'),
             'text': post_data.get('text'),
         }
         app.logger.info(f'card ID: {new_card['id']}')
         CARDS.append(new_card)
-        print(CARDS)
     else:
         response_object['cards'] = CARDS
     return jsonify(response_object)
 
-@app.route('/kanban/<card_id>', methods=['DELETE', 'PUT'])
+@app.route('/kanban/cards/<card_id>', methods=['DELETE', 'PUT'])
 def single_card(card_id):
     response_object = {'status': 'success'}
 
@@ -74,6 +86,7 @@ def single_card(card_id):
         return jsonify(response_object)
         
 
+# BOOK METHODS 
 @app.route('/books', methods=['GET', 'POST'])
 def all_books():
     response_object = {'status': 'success'}

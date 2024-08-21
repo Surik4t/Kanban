@@ -14,7 +14,12 @@
 
 <script>
 export default {
-  props: ['id', 'status', 'text'],
+  props: [
+    'id',
+    'columnId',
+    'status',
+    'text',
+  ],
   methods: {
     handleClick() {
       // eslint-disable-next-line
