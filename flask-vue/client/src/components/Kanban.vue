@@ -23,7 +23,10 @@
     <div>
       <b-modal ref="editColumnModal" @ok="editColumn">
         <h2> Enter new column name: </h2>
-        <input v-model="newColumnTitle" :placeholder="testMessage" @keyup.enter="editColumn" />
+        <input
+        v-model="editColumnForm.newColumnTitle"
+        :placeholder="editColumnForm.columnTitle"
+        @keyup.enter="editColumn" />
       </b-modal>
     </div>
   </div>
@@ -42,8 +45,11 @@ export default {
       columns: [],
       cards: [],
       testMessage: 'TEST',
-      newColumnTitle: '',
-      columnId: '',
+      editColumnForm: {
+        newColumnTitle: '',
+        columnId: '',
+        columnTitle: '',
+      },
     };
   },
   methods: {
@@ -74,17 +80,19 @@ export default {
         });
     },
     onEditColumnButtonClicked(columnId, columnTitle) {
-      this.columnId = columnId;
-      this.testMessage = columnTitle;
+      this.editColumnForm.columnId = columnId;
+      this.editColumnForm.columnTitle = columnTitle;
       this.$refs.editColumnModal.show();
     },
     editColumn() {
-      if (this.newColumnTitle.trim() !== '') {
-        const path = `http://localhost:5000/kanban/columns/?columnId=${this.columnId}&columnTitle=${this.newColumnTitle}`;
+      if (this.editColumnForm.newColumnTitle.trim() !== '') {
+        const id = this.editColumnForm.columnId;
+        const title = this.editColumnForm.newColumnTitle;
+        const path = `http://localhost:5000/kanban/columns/?columnId=${id}&columnTitle=${title}`;
         axios.put(path)
           .then(() => {
             this.$refs.editColumnModal.hide();
-            this.testMessage = '';
+            this.editColumnForm.newColumnTitle = '';
             this.getColumns();
             this.getCards();
           })
@@ -92,7 +100,7 @@ export default {
             // eslint-disable-next-line
             console.error(error);
             this.$refs.editColumnModal.hide();
-            this.testMessage = '';
+            this.editColumnForm.newColumnTitle = '';
             this.getColumns();
             this.getCards();
           });
