@@ -12,7 +12,7 @@
           pill variant="danger"
           id="deleteColumn"
           @click="handleDeleteColumnButton">
-          X
+          🗑️
         </b-button>
       </div>
     </div>
@@ -22,10 +22,15 @@
       :columnId="card.columnId"
       :status="card.status"
       :text="card.text"
-      @delete-card-button-clicked="handleDeleteCardButton"
+      @delete-card="handleDeleteCardButton"
       />
     </div>
-    <input v-model="newCardText" placeholder="Add new card" @keyup.enter="submitCard" />
+    <b-button
+      id="add new card"
+      pill variant="primary"
+      @click="handleAddCardButton">
+      +
+    </b-button>
   </div>
 </template>
 
@@ -54,13 +59,16 @@ export default {
       }
     },
     handleEditColumnButton() {
-      this.$emit('edit-column-button-clicked', this.id, this.title);
+      this.$emit('edit-column', this.id, this.title);
+    },
+    handleAddCardButton() {
+      this.$emit('add-card', this.id);
     },
     handleDeleteCardButton(cardId) {
-      this.$emit('delete-card-button-clicked', cardId);
+      this.$emit('delete-card', cardId);
     },
     handleDeleteColumnButton() {
-      this.$emit('delete-column-button-clicked', this.id);
+      this.$emit('delete-column', this.id);
     },
   },
   created() {
@@ -74,12 +82,9 @@ export default {
 .column {
   width: 30%;
   padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  max-width: 25em;
+  border: 3px solid #070707;
+  border-radius: 15px;
   margin-right: 5px;
-}
-
-.cards {
-  margin-bottom: 10px;
 }
 </style>

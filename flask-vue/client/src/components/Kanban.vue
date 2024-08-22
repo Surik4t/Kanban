@@ -14,19 +14,39 @@
         :id="column.id"
         :title="column.title"
         :cards="column.cards"
-        @add-card="addCard(index, $event)"
-        @edit-column-button-clicked="onEditColumnButtonClicked"
-        @delete-column-button-clicked="onDeleteColumnButtonClicked"
-        @delete-card-button-clicked="onDeleteCardButtonClicked"
+        @add-card="onAddCard"
+        @edit-column="onEditColumn"
+        @delete-column="onDeleteColumn"
+        @delete-card="onDeleteCard"
       />
     </div>
     <div>
       <b-modal ref="editColumnModal" @ok="editColumn">
         <h2> Enter new column name: </h2>
         <input
-        v-model="editColumnForm.newColumnTitle"
-        :placeholder="editColumnForm.columnTitle"
-        @keyup.enter="editColumn" />
+          v-model="editColumnForm.newColumnTitle"
+          :placeholder="editColumnForm.columnTitle"
+          @keyup.enter="editColumn" />
+      </b-modal>
+      <b-modal ref="editCardModal" @ok="addCard">
+        <h2> Creating new card </h2>
+        <div>
+          <h5> Status: </h5>
+          <input class="form-control" id="status"
+          v-model="editCardForm.status"
+          :placeholder="editCardForm.status"/>
+        </div>
+        <div>
+          <h5> Header: </h5>
+          <input class="form-control" id="header"
+          v-model="editCardForm.header"
+          :placeholder="editCardForm.header"/>
+        </div>
+        <div>
+          <h5> Description: </h5>
+          <textarea class="form-control" id="message-text">
+          </textarea>
+        </div>
       </b-modal>
     </div>
   </div>
@@ -49,6 +69,12 @@ export default {
         newColumnTitle: '',
         columnId: '',
         columnTitle: '',
+      },
+      editCardForm: {
+        columnId: '',
+        status: '',
+        header: '',
+        text: '',
       },
     };
   },
@@ -79,7 +105,7 @@ export default {
           this.getCards();
         });
     },
-    onEditColumnButtonClicked(columnId, columnTitle) {
+    onEditColumn(columnId, columnTitle) {
       this.editColumnForm.columnId = columnId;
       this.editColumnForm.columnTitle = columnTitle;
       this.$refs.editColumnModal.show();
@@ -93,6 +119,7 @@ export default {
           .then(() => {
             this.$refs.editColumnModal.hide();
             this.editColumnForm.newColumnTitle = '';
+
             this.getColumns();
             this.getCards();
           })
@@ -106,7 +133,7 @@ export default {
           });
       }
     },
-    onDeleteColumnButtonClicked(columnId) {
+    onDeleteColumn(columnId) {
       const path = `http://localhost:5000/kanban/columns/?columnId=${columnId}`;
       axios.delete(path)
         .then(() => {
@@ -136,6 +163,11 @@ export default {
           console.error(error);
         });
     },
+    onAddCard() {
+      const path = 'http://localhost:5000/kanban/cards';
+      axios.post(path);
+      this.$refs.editCardModal.show();
+    },
     addCard(columnIndex, cardText) {
       const path = 'http://localhost:5000/kanban/cards';
       const payload = { text: cardText, columnId: this.columns[columnIndex].id };
@@ -149,7 +181,7 @@ export default {
           this.getCards();
         });
     },
-    onDeleteCardButtonClicked(cardId) {
+    onDeleteCard(cardId) {
       this.testMessage = cardId;
       const path = `http://localhost:5000/kanban/cards/${cardId}`;
       axios.delete(path)
@@ -171,13 +203,13 @@ export default {
 </script>
 
 <style scoped>
+
 .board {
   padding: 20px;
-  background-color: #576769;
+  background-color: #98a4be;
 }
 
 .columns {
   display: flex;
-  justify-content: space-between;
 }
 </style>

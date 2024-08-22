@@ -1,13 +1,24 @@
 <template>
   <div class="card">
-    <div class="top">
-      {{ text }}
+    <div class="card
+      text-dark
+      border-dark
+      bg-light
+      mb-3">
+    <div class="card-header"> {{ status }} </div>
+    <div class="card-body text-dark">
+      <h5 class="card-title"> {{ header }} </h5>
+      <p class="card-text">Some quick example text to
+      build on the card title and make up the bulk of the card's content.</p>
+    <div class="card-footer text-end">
       <b-button
         pill variant="danger"
         id="deleteButton"
         @click="handleDeleteCardButton">
-        Delete card
+        🗑️
       </b-button>
+    </div>
+    </div>
     </div>
   </div>
 </template>
@@ -18,13 +29,14 @@ export default {
     'id',
     'columnId',
     'status',
+    'header',
     'text',
   ],
   methods: {
     handleDeleteCardButton() {
       // eslint-disable-next-line
       console.log(this.id);
-      this.$emit('delete-card-button-clicked', this.id);
+      this.$emit('delete-card', this.id);
     },
   },
 };
@@ -32,10 +44,10 @@ export default {
 
 <style scoped>
 .card {
-  background-color: #6ee9ce;
-  border: 1px solid #5ac0e9;
-  border-radius: 3px;
-  padding: 10px;
-  margin-bottom: 10px;
+  background-color: #98a4be;
+  border-color: #98a4be;
+  border-width: 3px;
+  border-radius: 15px;
+  margin-top: 5px;
 }
 </style>
