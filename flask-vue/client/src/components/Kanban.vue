@@ -1,6 +1,5 @@
 <template>
   <div class="board">
-    <h1 :testMessage="testMessage"> {{ testMessage }} </h1>
     <h1>Kanban Board</h1>
     <b-button
         pill variant="success"
@@ -16,9 +15,16 @@
         :title="column.title"
         :cards="column.cards"
         @add-card="addCard(index, $event)"
+        @edit-column-button-clicked="onEditColumnButtonClicked"
         @delete-column-button-clicked="onDeleteColumnButtonClicked"
         @delete-card-button-clicked="onDeleteCardButtonClicked"
       />
+    </div>
+    <div>
+      <b-modal ref="editColumnModal" @ok="editColumn">
+        <h2> Enter new column name: </h2>
+        <input v-model="newColumnTitle" :placeholder="testMessage" @keyup.enter="editColumn" />
+      </b-modal>
     </div>
   </div>
 </template>
@@ -36,6 +42,8 @@ export default {
       columns: [],
       cards: [],
       testMessage: 'TEST',
+      newColumnTitle: '',
+      columnId: '',
     };
   },
   methods: {
@@ -65,8 +73,33 @@ export default {
           this.getCards();
         });
     },
+    onEditColumnButtonClicked(columnId, columnTitle) {
+      this.columnId = columnId;
+      this.testMessage = columnTitle;
+      this.$refs.editColumnModal.show();
+    },
+    editColumn() {
+      if (this.newColumnTitle.trim() !== '') {
+        const path = `http://localhost:5000/kanban/columns/?columnId=${this.columnId}&columnTitle=${this.newColumnTitle}`;
+        axios.put(path)
+          .then(() => {
+            this.$refs.editColumnModal.hide();
+            this.testMessage = '';
+            this.getColumns();
+            this.getCards();
+          })
+          .catch((error) => {
+            // eslint-disable-next-line
+            console.error(error);
+            this.$refs.editColumnModal.hide();
+            this.testMessage = '';
+            this.getColumns();
+            this.getCards();
+          });
+      }
+    },
     onDeleteColumnButtonClicked(columnId) {
-      const path = `http://localhost:5000/kanban/columns/${columnId}`;
+      const path = `http://localhost:5000/kanban/columns/?columnId=${columnId}`;
       axios.delete(path)
         .then(() => {
           this.getColumns();

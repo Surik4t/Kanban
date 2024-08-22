@@ -49,14 +49,20 @@ def all_columns():
         response_object['columns'] = COLUMNS
     return jsonify(response_object)
 
-@app.route('/kanban/columns/<column_id>', methods=['DELETE', 'PUT'])
-def single_column(column_id):
+@app.route('/kanban/columns/', methods=['DELETE', 'PUT'])
+def single_column():
     response_object = {'status': 'success'}
+    global COLUMNS
     if request.method == 'PUT':
-        return
+        column_id = request.args.get('columnId')
+        new_column_title = request.args.get('columnTitle')
+        for column in COLUMNS:
+            if column['id'] == column_id:
+                column['title'] = new_column_title
+                return jsonify(response_object)
     if request.method == 'DELETE':
+        column_id = request.args.get('columnId')
         empty_colomn(column_id)
-        global COLUMNS
         COLUMNS = [column for column in COLUMNS if column['id'] != column_id]
         return jsonify(response_object)
 

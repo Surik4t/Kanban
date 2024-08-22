@@ -4,7 +4,8 @@
       <h2>{{ title }}</h2>
       <div class="d-flex justify-content-right">
         <b-button id="rename column"
-          pill variant="primary">
+          pill variant="primary"
+          @click="handleEditColumnButton">
           🖍
         </b-button>
         <b-button
@@ -51,6 +52,9 @@ export default {
         this.$emit('add-card', this.newCardText);
         this.newCardText = '';
       }
+    },
+    handleEditColumnButton() {
+      this.$emit('edit-column-button-clicked', this.id, this.title);
     },
     handleDeleteCardButton(cardId) {
       this.$emit('delete-card-button-clicked', cardId);
