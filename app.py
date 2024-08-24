@@ -77,6 +77,7 @@ def all_cards():
             'id': uuid.uuid4().hex,
             'columnId': post_data.get('columnId'),
             'status': post_data.get('status'),
+            'header': post_data.get('header'),
             'text': post_data.get('text'),
         }
         app.logger.info(f'card ID: {new_card['id']}')

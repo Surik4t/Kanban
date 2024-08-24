@@ -44,7 +44,8 @@
         </div>
         <div>
           <h5> Description: </h5>
-          <textarea class="form-control" id="message-text">
+          <textarea class="form-control" id="message-text"
+          v-model="editCardForm.text">
           </textarea>
         </div>
       </b-modal>
@@ -163,14 +164,18 @@ export default {
           console.error(error);
         });
     },
-    onAddCard() {
-      const path = 'http://localhost:5000/kanban/cards';
-      axios.post(path);
+    onAddCard(columnId) {
+      this.editCardForm.columnId = columnId;
       this.$refs.editCardModal.show();
     },
-    addCard(columnIndex, cardText) {
+    addCard() {
       const path = 'http://localhost:5000/kanban/cards';
-      const payload = { text: cardText, columnId: this.columns[columnIndex].id };
+      const payload = {
+        columnId: this.editCardForm.columnId,
+        status: this.editCardForm.status,
+        header: this.editCardForm.header,
+        text: this.editCardForm.text,
+      };
       axios.post(path, payload)
         .then(() => {
           this.getCards();

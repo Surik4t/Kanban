@@ -21,6 +21,7 @@
       :id="card.id"
       :columnId="card.columnId"
       :status="card.status"
+      :header="card.header"
       :text="card.text"
       @delete-card="handleDeleteCardButton"
       />
@@ -52,12 +53,6 @@ export default {
     };
   },
   methods: {
-    submitCard() {
-      if (this.newCardText.trim() !== '') {
-        this.$emit('add-card', this.newCardText);
-        this.newCardText = '';
-      }
-    },
     handleEditColumnButton() {
       this.$emit('edit-column', this.id, this.title);
     },
