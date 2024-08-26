@@ -3,7 +3,7 @@
     <div class="d-flex justify-content-between">
       <h2>{{ title }}</h2>
       <div class="d-flex justify-content-right">
-        <b-button id="rename column"
+        <b-button id="rename-column"
           pill variant="primary"
           @click="handleEditColumnButton">
           🖍
@@ -16,7 +16,12 @@
         </b-button>
       </div>
     </div>
-    <div class="cards">
+    <draggable
+    class="cards"
+    group="draggable-group"
+    :emptyInsertThreshold="100"
+    @end="detectChangeEnd"
+    >
       <Card v-for="(card, index) in cards" :key="index"
       :id="card.id"
       :columnId="card.columnId"
@@ -25,9 +30,9 @@
       :text="card.text"
       @delete-card="handleDeleteCardButton"
       />
-    </div>
+    </draggable>
     <b-button
-      id="add new card"
+      id="add-new-card"
       pill variant="primary"
       @click="handleAddCardButton">
       +
@@ -36,10 +41,12 @@
 </template>
 
 <script>
+import draggable from 'vuedraggable';
 import Card from './Card';
 
 export default {
   components: {
+    draggable,
     Card,
   },
   props: [
@@ -64,6 +71,10 @@ export default {
     },
     handleDeleteColumnButton() {
       this.$emit('delete-column', this.id);
+    },
+    detectChangeEnd(evt) {
+      // eslint-disable-next-line
+      console.log('Drag end:', evt.draggableContext);
     },
   },
   created() {

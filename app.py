@@ -25,7 +25,17 @@ BOOKS = [
 COLUMNS = [
     {
         'id': uuid.uuid4().hex,
-        'title': 'TEST',
+        'title': 'To do',
+        'cards': []
+    },
+    {
+        'id': uuid.uuid4().hex,
+        'title': 'In progress',
+        'cards': []
+    },
+    {
+        'id': uuid.uuid4().hex,
+        'title': 'Done',
         'cards': []
     }
 ]

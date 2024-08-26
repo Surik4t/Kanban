@@ -7,6 +7,7 @@
         @click="addColumn()">
         +
     </b-button>
+    <pre></pre>
     <div class="columns">
       <Column
         v-for="(column, index) in columns"
