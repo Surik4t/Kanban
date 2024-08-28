@@ -4,7 +4,7 @@
       <h2>{{ title }}</h2>
       <div class="d-flex justify-content-right">
         <b-button id="rename-column"
-          pill variant="primary"
+          pill variant="info"
           @click="handleEditColumnButton">
           🖍
         </b-button>
@@ -17,10 +17,11 @@
       </div>
     </div>
     <draggable
-    class="cards"
+    :list="cards"
+    :options="{animation:300}"
     group="draggable-group"
     :emptyInsertThreshold="100"
-    @end="detectChangeEnd"
+    @end="detectChange"
     >
       <Card v-for="(card, index) in cards" :key="index"
       :id="card.id"
@@ -33,9 +34,9 @@
     </draggable>
     <b-button
       id="add-new-card"
-      pill variant="primary"
+      pill variant="info"
       @click="handleAddCardButton">
-      +
+      Add a card
     </b-button>
   </div>
 </template>
@@ -72,14 +73,18 @@ export default {
     handleDeleteColumnButton() {
       this.$emit('delete-column', this.id);
     },
-    detectChangeEnd(evt) {
+    detectChange() {
+      const allColumns = this.$parent.columns.map(column => ({
+        id: column.id,
+        cards: column.cards,
+      }));
+      this.$emit('update-all-columns', allColumns);
       // eslint-disable-next-line
-      console.log('Drag end:', evt.draggableContext);
+      console.log(allColumns);
     },
   },
   created() {
-    // eslint-disable-next-line
-    console.log('Column created with ID:', this.id);
+    // console.log('Column created with ID:', this.id);
   },
 };
 </script>
@@ -89,6 +94,7 @@ export default {
   width: 30%;
   padding: 10px;
   max-width: 25em;
+  background-color: #f0ede0;
   border: 3px solid #070707;
   border-radius: 15px;
   margin-right: 5px;

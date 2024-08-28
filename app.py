@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import logging
 import uuid
 
 # configuration
@@ -111,6 +110,22 @@ def single_card(card_id):
 def empty_colomn(column_id):
     global CARDS
     CARDS = [card for card in CARDS if card['columnId'] != column_id]
+
+# updating the entire board
+@app.route('/kanban/updateBoard/', methods=['PUT'])
+def updateBoard():
+    response_object = {'status': 'success'}
+    data = request.json
+    new_card_order = []
+    for column in data:
+        column_id = column['id']
+        for card in column['cards']:
+            if card['columnId'] != column_id:
+                card['columnId'] = column_id
+            new_card_order.append(card)
+    global CARDS
+    CARDS = new_card_order
+    return jsonify(response_object)
 
 # BOOK METHODS 
 @app.route('/books', methods=['GET', 'POST'])

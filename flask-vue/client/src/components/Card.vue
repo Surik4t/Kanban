@@ -11,6 +11,7 @@
       <p class="card-text"> {{ text }} </p>
     <div class="card-footer text-end">
       <b-button
+        size="sm"
         pill variant="danger"
         id="deleteButton"
         @click="handleDeleteCardButton">
@@ -43,8 +44,8 @@ export default {
 
 <style scoped>
 .card {
-  background-color: #98a4be;
-  border-color: #98a4be;
+  background-color: #f0ede0;
+  border-color: #f0ede0;
   border-width: 3px;
   border-radius: 15px;
   margin-top: 5px;

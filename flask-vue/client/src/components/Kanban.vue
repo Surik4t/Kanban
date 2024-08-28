@@ -2,10 +2,10 @@
   <div class="board">
     <h1>Kanban Board</h1>
     <b-button
-        pill variant="success"
+        pill variant="info"
         id="addColumn"
         @click="addColumn()">
-        +
+        New Column
     </b-button>
     <pre></pre>
     <div class="columns">
@@ -19,6 +19,7 @@
         @edit-column="onEditColumn"
         @delete-column="onDeleteColumn"
         @delete-card="onDeleteCard"
+        @update-all-columns="updateKanban"
       />
     </div>
     <div>
@@ -149,6 +150,10 @@ export default {
           this.getCards();
         });
     },
+    updateKanban(payload) {
+      const path = 'http://localhost:5000/kanban/updateBoard/';
+      axios.put(path, payload);
+    },
     getCards() {
       const path = 'http://localhost:5000/kanban/cards';
       axios.get(path)
@@ -212,7 +217,7 @@ export default {
 
 .board {
   padding: 20px;
-  background-color: #98a4be;
+  background-color: #E9E5CD;
 }
 
 .columns {
