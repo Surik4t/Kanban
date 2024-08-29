@@ -1,7 +1,7 @@
 <template>
-  <div class="column">
+  <div class="column shadow-lg">
     <div class="d-flex justify-content-sm-between">
-      <div class="btn-group btn-group">
+      <div class="btn-group btn-group shadow-sm">
           <button type="button" class="btn btn-outline-info"
             @click="slideColumnLeft"
             :disabled="ifFirstColumn">
@@ -14,13 +14,13 @@
           </button>
       </div>
       <div class="md-3">
-          <b-button
+          <b-button class="shadow-sm"
             id="rename-column"
             pill variant="outline-info"
             @click="handleEditColumnButton">
             Edit title
           </b-button>
-          <b-button
+          <b-button class="shadow-sm"
             pill variant="outline-danger"
             id="delete-column"
             @click="handleDeleteColumnButton">
@@ -46,7 +46,7 @@
       @delete-card="handleDeleteCardButton"
       />
     </draggable>
-    <b-button
+    <b-button class="shadow"
       id="add-new-card"
       pill variant="info"
       @click="handleAddCardButton">

@@ -1,6 +1,6 @@
 <template>
   <div class="board">
-    <b-button
+    <b-button class="shadow"
         pill variant="info"
         size="lg"
         id="addColumn"
