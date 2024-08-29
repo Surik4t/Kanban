@@ -1,8 +1,8 @@
 <template>
   <div class="board">
-    <h1>Kanban Board</h1>
     <b-button
         pill variant="info"
+        size="lg"
         id="addColumn"
         @click="addColumn()">
         New Column
@@ -10,13 +10,14 @@
     <pre></pre>
     <div class="columns">
       <Column
-        v-for="(column, index) in columns"
-        :key="index"
+        v-for="(column) in columns" :key="column.pos"
+        :pos="column.pos"
         :id="column.id"
         :title="column.title"
         :cards="column.cards"
         @add-card="onAddCard"
         @edit-column="onEditColumn"
+        @swap-columns="onColumnSwap"
         @delete-column="onDeleteColumn"
         @delete-card="onDeleteCard"
         @update-all-columns="updateKanban"
@@ -25,7 +26,7 @@
     <div>
       <b-modal ref="editColumnModal" @ok="editColumn">
         <h2> Enter new column name: </h2>
-        <input
+        <input class="form-control"
           v-model="editColumnForm.newColumnTitle"
           :placeholder="editColumnForm.columnTitle"
           @keyup.enter="editColumn" />
@@ -95,7 +96,7 @@ export default {
     },
     addColumn() {
       const path = 'http://localhost:5000/kanban/columns';
-      const payload = { title: 'New Column' };
+      const payload = { pos: this.columns.length, title: 'New Column' };
       axios.post(path, payload)
         .then(() => {
           this.getColumns();
@@ -104,9 +105,24 @@ export default {
         .catch((error) => {
           // eslint-disable-next-line
           console.error(error);
+        });
+    },
+    onColumnSwap(pos, direction) {
+      const path = `http://localhost:5000/kanban/columns/swap/?pos=${pos}&direction=${direction}`;
+      axios.put(path)
+        .then(() => {
           this.getColumns();
           this.getCards();
+        })
+        .then(() => {
+          this.getCards();
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
         });
+      // eslint-disable-next-line
+      // console.log();
     },
     onEditColumn(columnId, columnTitle) {
       this.editColumnForm.columnId = columnId;
@@ -122,7 +138,6 @@ export default {
           .then(() => {
             this.$refs.editColumnModal.hide();
             this.editColumnForm.newColumnTitle = '';
-
             this.getColumns();
             this.getCards();
           })
@@ -131,8 +146,6 @@ export default {
             console.error(error);
             this.$refs.editColumnModal.hide();
             this.editColumnForm.newColumnTitle = '';
-            this.getColumns();
-            this.getCards();
           });
       }
     },
@@ -146,8 +159,6 @@ export default {
         .catch((error) => {
           // eslint-disable-next-line
           console.error(error);
-          this.getColumns();
-          this.getCards();
         });
     },
     updateKanban(payload) {
@@ -185,11 +196,19 @@ export default {
       axios.post(path, payload)
         .then(() => {
           this.getCards();
+          this.editCardForm.columnId = '';
+          this.editCardForm.status = '';
+          this.editCardForm.header = '';
+          this.editCardForm.text = '';
         })
         .catch((error) => {
           // eslint-disable-next-line
           console.error(error);
           this.getCards();
+          this.editCardForm.columnId = '';
+          this.editCardForm.status = '';
+          this.editCardForm.header = '';
+          this.editCardForm.text = '';
         });
     },
     onDeleteCard(cardId) {
@@ -202,7 +221,6 @@ export default {
         .catch((error) => {
           // eslint-disable-next-line
           console.error(error);
-          this.getCards();
         });
     },
   },

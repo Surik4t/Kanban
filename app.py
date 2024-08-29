@@ -23,16 +23,19 @@ BOOKS = [
 
 COLUMNS = [
     {
+        'pos': 0,
         'id': uuid.uuid4().hex,
         'title': 'To do',
         'cards': []
     },
     {
+        'pos': 1,
         'id': uuid.uuid4().hex,
         'title': 'In progress',
         'cards': []
     },
     {
+        'pos': 2,
         'id': uuid.uuid4().hex,
         'title': 'Done',
         'cards': []
@@ -48,9 +51,9 @@ def all_columns():
     if request.method == 'POST':
         post_data = request.get_json()
         new_column = {
+            'pos': post_data.get('pos'),
             'id': uuid.uuid4().hex,
             'title': post_data.get('title'),
-            'cards': []
         }
         app.logger.info(f'column ID: {new_column['id']}')
         COLUMNS.append(new_column)
@@ -72,9 +75,28 @@ def single_column():
     if request.method == 'DELETE':
         column_id = request.args.get('columnId')
         empty_colomn(column_id)
-        COLUMNS = [column for column in COLUMNS if column['id'] != column_id]
+        for column in COLUMNS:
+            if column['id'] == column_id:
+                deleted_position = column['pos']
+                COLUMNS.remove(column)
+                break
+        for column in COLUMNS:
+            if column['pos'] > deleted_position:
+                column['pos'] -= 1
         return jsonify(response_object)
 
+@app.route('/kanban/columns/swap/', methods=['PUT'])
+def swap_columns():
+    response_object = {'statis': 'success'}
+    pos = int(request.args.get('pos'))
+    direction = request.args.get('direction')
+    if direction == 'left':
+        COLUMNS[pos], COLUMNS[pos-1] = COLUMNS[pos-1], COLUMNS[pos]
+        COLUMNS[pos]['pos'], COLUMNS[pos-1]['pos'] = COLUMNS[pos-1]['pos'], COLUMNS[pos]['pos']
+    elif direction == 'right':
+        COLUMNS[pos], COLUMNS[pos+1] = COLUMNS[pos+1], COLUMNS[pos]
+        COLUMNS[pos]['pos'], COLUMNS[pos+1]['pos'] = COLUMNS[pos+1]['pos'], COLUMNS[pos]['pos']
+    return jsonify(response_object)
 
 # CARD METHODS
 @app.route('/kanban/cards', methods=['GET', 'POST'])

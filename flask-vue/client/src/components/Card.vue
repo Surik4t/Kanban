@@ -5,19 +5,26 @@
       border-dark
       bg-light
       mb-3">
-    <div class="card-header"> {{ status }} </div>
+    <div class="card-header text-end"> {{ status }} </div>
     <div class="card-body text-dark">
       <h5 class="card-title"> {{ header }} </h5>
       <p class="card-text"> {{ text }} </p>
+    </div>
     <div class="card-footer text-end">
       <b-button
         size="sm"
-        pill variant="danger"
+        pill variant="outline-info"
+        id="deleteButton"
+        @click="handleDeleteCardButton">
+        Edit
+      </b-button>
+      <b-button
+        size="sm"
+        pill variant="outline-danger"
         id="deleteButton"
         @click="handleDeleteCardButton">
         🗑️
       </b-button>
-    </div>
     </div>
     </div>
   </div>
