@@ -99,7 +99,7 @@ def swap_columns():
     return jsonify(response_object)
 
 # CARD METHODS
-@app.route('/kanban/cards', methods=['GET', 'POST'])
+@app.route('/kanban/cards/', methods=['GET', 'POST', 'PUT'])
 def all_cards():
     response_object = {'status': 'success'}
     if request.method == 'POST':
@@ -113,16 +113,21 @@ def all_cards():
         }
         app.logger.info(f'card ID: {new_card['id']}')
         CARDS.append(new_card)
-    else:
+    elif request.method == 'PUT':
+        new_card_data = request.json
+        for card in CARDS:
+            if card['id'] == new_card_data['id']:
+                card['status'] = new_card_data['status']
+                card['header'] = new_card_data['header']
+                card['text'] = new_card_data['text']
+                break
+    elif request.method == 'GET':
         response_object['cards'] = CARDS
     return jsonify(response_object)
 
-@app.route('/kanban/cards/<card_id>', methods=['DELETE', 'PUT'])
+@app.route('/kanban/cards/<card_id>', methods=['DELETE'])
 def single_card(card_id):
     response_object = {'status': 'success'}
-
-    if request.method == 'PUT':
-        return
     if request.method == 'DELETE':
         for card in CARDS:
             if card_id == card['id']:

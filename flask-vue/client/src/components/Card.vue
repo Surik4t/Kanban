@@ -11,14 +11,14 @@
     <p class="card-text"> {{ text }} </p>
   </div>
   <div class="card-footer text-end">
-    <b-button
+    <b-button class="shadow-sm"
       size="sm"
       pill variant="outline-info"
       id="deleteButton"
-      @click="handleDeleteCardButton">
+      @click="handleEditCardButton">
       Edit
     </b-button>
-    <b-button
+    <b-button class="shadow-sm"
       size="sm"
       pill variant="outline-danger"
       id="deleteButton"
@@ -40,9 +40,16 @@ export default {
   ],
   methods: {
     handleDeleteCardButton() {
-      // eslint-disable-next-line
-      console.log(this.id);
       this.$emit('delete-card', this.id);
+    },
+    handleEditCardButton() {
+      const payload = {
+        id: this.id,
+        status: this.status,
+        header: this.header,
+        text: this.text,
+      };
+      this.$emit('edit-card', payload);
     },
   },
 };

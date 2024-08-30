@@ -43,6 +43,7 @@
       :status="card.status"
       :header="card.header"
       :text="card.text"
+      @edit-card="handleEditCardButton"
       @delete-card="handleDeleteCardButton"
       />
     </draggable>
@@ -87,17 +88,16 @@ export default {
     slideColumnLeft() {
       const direction = 'left';
       this.$emit('swap-columns', this.pos, direction);
-      // eslint-disable-next-line
-      console.log('swap left');
     },
     slideColumnRight() {
       const direction = 'right';
       this.$emit('swap-columns', this.pos, direction);
-      // eslint-disable-next-line
-      console.log('swap right');
     },
     handleEditColumnButton() {
       this.$emit('edit-column', this.id, this.title);
+    },
+    handleEditCardButton(payload) {
+      this.$emit('edit-card', payload);
     },
     handleAddCardButton() {
       this.$emit('add-card', this.id);
@@ -114,12 +114,7 @@ export default {
         cards: column.cards,
       }));
       this.$emit('update-all-columns', allColumns);
-      // eslint-disable-next-line
-      console.log(allColumns);
     },
-  },
-  created() {
-    // console.log('Column created with ID:', this.id);
   },
 };
 </script>
