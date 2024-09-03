@@ -35,10 +35,10 @@
       <b-modal ref="addCardModal" @ok="addCard">
         <h2> Creating new card </h2>
         <div>
-          <h5> Status: </h5>
-          <input class="form-control" id="status"
-          v-model="editCardForm.status"
-          :placeholder="editCardForm.status"/>
+          <h5> Priority: </h5>
+          <input class="form-control" id="priority"
+          v-model="editCardForm.priority"
+          :placeholder="editCardForm.priority"/>
         </div>
         <div>
           <h5> Header: </h5>
@@ -56,10 +56,10 @@
       <b-modal ref="editCardModal" @ok="editCard">
         <h2> Edit card </h2>
         <div>
-          <h5> Status: </h5>
-          <input class="form-control" id="status"
-          v-model="editCardForm.status"
-          :placeholder="editCardForm.status"/>
+          <h5> Priority: </h5>
+          <input class="form-control" id="priority"
+          v-model="editCardForm.priority"
+          :placeholder="editCardForm.priority"/>
         </div>
         <div>
           <h5> Header: </h5>
@@ -99,7 +99,7 @@ export default {
       editCardForm: {
         columnId: '',
         id: '',
-        status: '',
+        priority: '',
         header: '',
         text: '',
       },
@@ -125,7 +125,7 @@ export default {
           // eslint-disable-next-line
           this.columns.forEach(column => {
             // eslint-disable-next-line
-            column.cards = this.cards.filter(card => card.columnId === column.id);
+            column.cards = this.cards.filter(card => card.column_id === column.id);
           });
         })
         .catch((error) => {
@@ -163,7 +163,7 @@ export default {
     },
     onEditCard(payload) {
       this.editCardForm.id = payload.id;
-      this.editCardForm.status = payload.status;
+      this.editCardForm.priority = payload.priority;
       this.editCardForm.header = payload.header;
       this.editCardForm.text = payload.text;
       this.$refs.editCardModal.show();
@@ -172,7 +172,7 @@ export default {
       const path = 'http://localhost:5000/kanban/cards/';
       const payload = {
         id: this.editCardForm.id,
-        status: this.editCardForm.status,
+        priority: this.editCardForm.priority,
         header: this.editCardForm.header,
         text: this.editCardForm.text,
       };
@@ -233,7 +233,7 @@ export default {
       const path = 'http://localhost:5000/kanban/cards/';
       const payload = {
         columnId: this.editCardForm.columnId,
-        status: this.editCardForm.status,
+        priority: this.editCardForm.priority,
         header: this.editCardForm.header,
         text: this.editCardForm.text,
       };

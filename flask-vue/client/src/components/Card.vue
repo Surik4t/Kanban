@@ -5,7 +5,7 @@
     border-dark
     bg-light
     mb-3">
-  <div class="card-header text-end"> {{ status }} </div>
+  <div class="card-header text-end"> {{ priority }} </div>
   <div class="card-body text-dark">
     <h5 class="card-title"> {{ header }} </h5>
     <p class="card-text"> {{ text }} </p>
@@ -33,8 +33,8 @@
 export default {
   props: [
     'id',
-    'columnId',
-    'status',
+    'column_id',
+    'priority',
     'header',
     'text',
   ],
@@ -45,7 +45,7 @@ export default {
     handleEditCardButton() {
       const payload = {
         id: this.id,
-        status: this.status,
+        priority: this.priority,
         header: this.header,
         text: this.text,
       };

@@ -37,10 +37,10 @@
     :emptyInsertThreshold="50"
     @end="detectChange"
     >
-      <Card v-for="(card) in cards" :key="card.id"
+      <Card v-for="(card, index) in cards" :key="index"
       :id="card.id"
-      :columnId="card.columnId"
-      :status="card.status"
+      :columnId="card.column_id"
+      :priority="card.priority"
       :header="card.header"
       :text="card.text"
       @edit-card="handleEditCardButton"
@@ -108,12 +108,14 @@ export default {
     handleDeleteColumnButton() {
       this.$emit('delete-column', this.id);
     },
-    detectChange() {
+    detectChange(evt) {
       const allColumns = this.$parent.columns.map(column => ({
         id: column.id,
         cards: column.cards,
       }));
       this.$emit('update-all-columns', allColumns);
+      // eslint-disable-next-line
+      console.log(evt);
     },
   },
 };

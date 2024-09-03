@@ -66,12 +66,12 @@ def all_columns():
         conn = db_connection()
         cur = conn.cursor()
         cur.execute('SELECT * FROM columns ORDER BY pos ASC;')
-        db_columns = cur.fetchall()
+        columns = cur.fetchall()
         cur.close()
         conn.close()
 
         keys = ['pos', 'id', 'title']
-        COLUMNS = [dict(zip(keys, column)) for column in db_columns]
+        COLUMNS = [dict(zip(keys, column)) for column in columns]
         for column in COLUMNS:
             column['cards'] = []
         response_object['columns'] = COLUMNS
@@ -87,11 +87,9 @@ def single_column():
         conn = db_connection()
         cur = conn.cursor()
 
-        cur.execute('''
-                    UPDATE columns
+        cur.execute('''UPDATE columns
                     SET title = %s
-                    WHERE uuid = %s;
-                    ''', (new_column_title, column_id))
+                    WHERE uuid = %s;''', (new_column_title, column_id))
         cur.close()
         conn.commit()
         conn.close()
@@ -102,22 +100,17 @@ def single_column():
         conn = db_connection()
         cur = conn.cursor()
 
-        cur.execute('''
-                    SELECT pos FROM columns
-                    WHERE uuid = %s;
-                    ''', (column_id,))
+        cur.execute('''SELECT pos FROM columns
+                    WHERE uuid = %s;''', (column_id,))
         data = cur.fetchone()
         pos = int(data[0])
-        empty_colomn(column_id)
-        cur.execute('''
-                    DELETE FROM columns
-                    WHERE uuid = %s;
-                    ''', (column_id,))
-        cur.execute('''
-                    UPDATE columns
+        cur.execute('''DELETE FROM cards
+                    WHERE column_id = %s;''', (column_id,))
+        cur.execute('''DELETE FROM columns
+                    WHERE uuid = %s;''', (column_id,))
+        cur.execute('''UPDATE columns
                     SET pos = pos - 1
-                    WHERE pos > %s;
-                    ''', (pos,))
+                    WHERE pos > %s;''', (pos,))
         conn.commit()
         cur.close()
         conn.close()
@@ -131,28 +124,27 @@ def swap_columns():
     conn = db_connection()
     cur = conn.cursor()
     cur.execute('''SELECT uuid, title FROM columns
-                WHERE pos = %s;
-                ''', (current_pos,))
+                WHERE pos = %s;''', (current_pos,))
     data = cur.fetchone()
     temp = {'uuid': data[0], 'title': data[1]}
     if direction == 'left':
         cur.execute('''SELECT pos, uuid, title FROM columns
-                    WHERE pos = %s - 1;
-                    ''', (current_pos,))
+                    WHERE pos = %s - 1;''', (current_pos,))
     elif direction == 'right':
         cur.execute('''SELECT pos, uuid, title FROM columns
-                    WHERE pos = %s + 1;
-                    ''', (current_pos,))
+                    WHERE pos = %s + 1;''', (current_pos,))
     data = cur.fetchone()
     target = {'pos': data[0], 'uuid': data[1], 'title': data[2]}
     cur.execute('''UPDATE columns
                 SET uuid = %s, title = %s
                 WHERE pos = %s;
-                ''', (temp['uuid'], temp['title'], target['pos']))
+                ''', (temp['uuid'], temp['title'], target['pos'])
+                )
     cur.execute('''UPDATE columns
-            SET uuid = %s, title = %s
-            WHERE pos = %s;
-            ''', (target['uuid'], target['title'], current_pos))
+                SET uuid = %s, title = %s
+                WHERE pos = %s;
+                ''', (target['uuid'], target['title'], current_pos)
+                )
     cur.close()
     conn.commit()
     conn.close()
@@ -161,42 +153,62 @@ def swap_columns():
 # CARD METHODS
 @app.route('/kanban/cards/', methods=['GET', 'POST', 'PUT'])
 def all_cards():
+    conn = db_connection()
+    cur = conn.cursor()
     response_object = {'status': 'success'}
+
     if request.method == 'POST':
         post_data = request.get_json()
-        new_card = {
-            'id': uuid.uuid4().hex,
-            'columnId': post_data.get('columnId'),
-            'status': post_data.get('status'),
-            'header': post_data.get('header'),
-            'text': post_data.get('text'),
-        }
-        app.logger.info(f'card ID: {new_card['id']}')
-        CARDS.append(new_card)
+        new_card = (
+            uuid.uuid4().hex,
+            post_data.get('columnId'),
+            post_data.get('priority'),
+            post_data.get('header'),
+            post_data.get('text'),
+        )
+        cur.execute('''INSERT INTO cards(id, column_id, priority, header, text)
+                    VALUES (%s, %s, %s, %s, %s);''', 
+                    new_card
+                    )
+        conn.commit()
+
     elif request.method == 'PUT':
         new_card_data = request.json
-        for card in CARDS:
-            if card['id'] == new_card_data['id']:
-                card['status'] = new_card_data['status']
-                card['header'] = new_card_data['header']
-                card['text'] = new_card_data['text']
-                break
+        conn = db_connection()
+        cur = conn.cursor()
+        cur.execute('''UPDATE cards
+                    SET priority = %s, header = %s, text = %s
+                    WHERE id = %s;
+                    ''',
+                    (
+                      new_card_data['priority'],
+                      new_card_data['header'],
+                      new_card_data['text'],
+                      new_card_data['id']
+                    )
+                  )
+        conn.commit()
+
     elif request.method == 'GET':
+        cur.execute('''SELECT * FROM cards;''')
+        cards = cur.fetchall()
+        keys = ['id', 'column_id', 'priority', 'header', 'text']
+        CARDS = [dict(zip(keys, card)) for card in cards]
         response_object['cards'] = CARDS
+    cur.close()
+    conn.close()
     return jsonify(response_object)
 
 @app.route('/kanban/cards/<card_id>', methods=['DELETE'])
 def single_card(card_id):
     response_object = {'status': 'success'}
-    if request.method == 'DELETE':
-        for card in CARDS:
-            if card_id == card['id']:
-                CARDS.remove(card)
-        return jsonify(response_object)
-        
-def empty_colomn(column_id):
-    global CARDS
-    CARDS = [card for card in CARDS if card['columnId'] != column_id]
+    conn = db_connection()
+    cur = conn.cursor()
+    cur.execute('''DELETE FROM cards WHERE id = %s;''', (card_id,))
+    cur.close()
+    conn.commit()
+    conn.close()
+    return jsonify(response_object)
 
 # updating the entire board
 @app.route('/kanban/updateBoard/', methods=['PUT'])
@@ -207,8 +219,8 @@ def updateBoard():
     for column in data:
         column_id = column['id']
         for card in column['cards']:
-            if card['columnId'] != column_id:
-                card['columnId'] = column_id
+            if card['column_id'] != column_id:
+                card['column_Id'] = column_id
             new_card_order.append(card)
     global CARDS
     CARDS = new_card_order
