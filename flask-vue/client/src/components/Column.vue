@@ -7,7 +7,7 @@
             :disabled="ifFirstColumn">
             ⪡
           </button>
-            <button type="button" class="btn btn-outline-info"
+          <button type="button" class="btn btn-outline-info"
             @click="slideColumnRight"
             :disabled="ifLastColumn">
             ⪢

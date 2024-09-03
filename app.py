@@ -1,5 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from dotenv import load_dotenv
+import psycopg2, os
 import uuid
 
 # configuration
@@ -12,6 +14,24 @@ app.config.from_object(__name__)
 # enable CORS
 CORS(app)
 
+load_dotenv()
+DB_USERNAME = os.getenv('DB_USERNAME')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+
+# connection to DB
+def db_connection():
+    try: 
+        conn = psycopg2.connect(host='localhost',
+                              dbname='testdb',
+                              user=DB_USERNAME,
+                              password=DB_PASSWORD
+                              )
+        print(conn)
+        return conn
+    except Exception as e:
+        print(f'error connecting to database: {e}')
+        return None
+
 BOOKS = [
     {
       'id': uuid.uuid4().hex,
@@ -19,27 +39,6 @@ BOOKS = [
       'author': 'Jack Kerouac',
       'read': True
 	  }
-]
-
-COLUMNS = [
-    {
-        'pos': 0,
-        'id': uuid.uuid4().hex,
-        'title': 'To do',
-        'cards': []
-    },
-    {
-        'pos': 1,
-        'id': uuid.uuid4().hex,
-        'title': 'In progress',
-        'cards': []
-    },
-    {
-        'pos': 2,
-        'id': uuid.uuid4().hex,
-        'title': 'Done',
-        'cards': []
-    }
 ]
 
 CARDS = []
@@ -53,49 +52,110 @@ def all_columns():
         new_column = {
             'pos': post_data.get('pos'),
             'id': uuid.uuid4().hex,
-            'title': post_data.get('title'),
+            'title': 'New column',
         }
-        app.logger.info(f'column ID: {new_column['id']}')
-        COLUMNS.append(new_column)
+        conn = db_connection()
+        cur = conn.cursor()
+        cur.execute(f'''INSERT INTO columns(pos, uuid, title)
+                    VALUES (%s, %s, %s);''', (new_column['pos'], new_column['id'], new_column['title'])
+                    )
+        conn.commit()
+        cur.close()
+        conn.close()
     else:
+        conn = db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM columns ORDER BY pos ASC;')
+        db_columns = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        keys = ['pos', 'id', 'title']
+        COLUMNS = [dict(zip(keys, column)) for column in db_columns]
+        for column in COLUMNS:
+            column['cards'] = []
         response_object['columns'] = COLUMNS
     return jsonify(response_object)
 
 @app.route('/kanban/columns/', methods=['DELETE', 'PUT'])
 def single_column():
     response_object = {'status': 'success'}
-    global COLUMNS
+
     if request.method == 'PUT':
         column_id = request.args.get('columnId')
         new_column_title = request.args.get('columnTitle')
-        for column in COLUMNS:
-            if column['id'] == column_id:
-                column['title'] = new_column_title
-                return jsonify(response_object)
+        conn = db_connection()
+        cur = conn.cursor()
+
+        cur.execute('''
+                    UPDATE columns
+                    SET title = %s
+                    WHERE uuid = %s;
+                    ''', (new_column_title, column_id))
+        cur.close()
+        conn.commit()
+        conn.close()
+        return jsonify(response_object)
+            
     if request.method == 'DELETE':
         column_id = request.args.get('columnId')
+        conn = db_connection()
+        cur = conn.cursor()
+
+        cur.execute('''
+                    SELECT pos FROM columns
+                    WHERE uuid = %s;
+                    ''', (column_id,))
+        data = cur.fetchone()
+        pos = int(data[0])
         empty_colomn(column_id)
-        for column in COLUMNS:
-            if column['id'] == column_id:
-                deleted_position = column['pos']
-                COLUMNS.remove(column)
-                break
-        for column in COLUMNS:
-            if column['pos'] > deleted_position:
-                column['pos'] -= 1
+        cur.execute('''
+                    DELETE FROM columns
+                    WHERE uuid = %s;
+                    ''', (column_id,))
+        cur.execute('''
+                    UPDATE columns
+                    SET pos = pos - 1
+                    WHERE pos > %s;
+                    ''', (pos,))
+        conn.commit()
+        cur.close()
+        conn.close()
         return jsonify(response_object)
 
 @app.route('/kanban/columns/swap/', methods=['PUT'])
 def swap_columns():
     response_object = {'statis': 'success'}
-    pos = int(request.args.get('pos'))
+    current_pos = int(request.args.get('pos'))
     direction = request.args.get('direction')
+    conn = db_connection()
+    cur = conn.cursor()
+    cur.execute('''SELECT uuid, title FROM columns
+                WHERE pos = %s;
+                ''', (current_pos,))
+    data = cur.fetchone()
+    temp = {'uuid': data[0], 'title': data[1]}
     if direction == 'left':
-        COLUMNS[pos], COLUMNS[pos-1] = COLUMNS[pos-1], COLUMNS[pos]
-        COLUMNS[pos]['pos'], COLUMNS[pos-1]['pos'] = COLUMNS[pos-1]['pos'], COLUMNS[pos]['pos']
+        cur.execute('''SELECT pos, uuid, title FROM columns
+                    WHERE pos = %s - 1;
+                    ''', (current_pos,))
     elif direction == 'right':
-        COLUMNS[pos], COLUMNS[pos+1] = COLUMNS[pos+1], COLUMNS[pos]
-        COLUMNS[pos]['pos'], COLUMNS[pos+1]['pos'] = COLUMNS[pos+1]['pos'], COLUMNS[pos]['pos']
+        cur.execute('''SELECT pos, uuid, title FROM columns
+                    WHERE pos = %s + 1;
+                    ''', (current_pos,))
+    data = cur.fetchone()
+    target = {'pos': data[0], 'uuid': data[1], 'title': data[2]}
+    cur.execute('''UPDATE columns
+                SET uuid = %s, title = %s
+                WHERE pos = %s;
+                ''', (temp['uuid'], temp['title'], target['pos']))
+    cur.execute('''UPDATE columns
+            SET uuid = %s, title = %s
+            WHERE pos = %s;
+            ''', (target['uuid'], target['title'], current_pos))
+    cur.close()
+    conn.commit()
+    conn.close()
     return jsonify(response_object)
 
 # CARD METHODS
@@ -201,3 +261,4 @@ def remove_book(book_id):
 
 if __name__ == '__main__':
     app.run()
+    

@@ -135,7 +135,7 @@ export default {
     },
     addColumn() {
       const path = 'http://localhost:5000/kanban/columns';
-      const payload = { pos: this.columns.length, title: 'New Column' };
+      const payload = { pos: this.columns.length };
       axios.post(path, payload)
         .then(() => {
           this.getColumns();
@@ -209,6 +209,7 @@ export default {
       }
     },
     onDeleteColumn(columnId) {
+      this.$refs.editColumnModal.hide();
       const path = `http://localhost:5000/kanban/columns/?columnId=${columnId}`;
       axios.delete(path)
         .then(() => {
