@@ -60,21 +60,22 @@ def all_columns():
                     VALUES (%s, %s, %s);''', (new_column['pos'], new_column['id'], new_column['title'])
                     )
         conn.commit()
-        cur.close()
-        conn.close()
-    else:
+
+    elif request.method == 'GET':
         conn = db_connection()
         cur = conn.cursor()
         cur.execute('SELECT * FROM columns ORDER BY pos ASC;')
         columns = cur.fetchall()
-        cur.close()
-        conn.close()
-
         keys = ['pos', 'id', 'title']
         COLUMNS = [dict(zip(keys, column)) for column in columns]
         for column in COLUMNS:
-            column['cards'] = []
+            cur.execute('''SELECT * FROM cards WHERE column_id = %s;''', (column['id'],))
+            cards_data = cur.fetchall()
+            keys = ['id', 'column_id', 'priority', 'header', 'text']
+            column['cards'] = [dict(zip(keys, card)) for card in cards_data]
         response_object['columns'] = COLUMNS
+    cur.close()
+    conn.close()
     return jsonify(response_object)
 
 @app.route('/kanban/columns/', methods=['DELETE', 'PUT'])
@@ -190,11 +191,7 @@ def all_cards():
         conn.commit()
 
     elif request.method == 'GET':
-        cur.execute('''SELECT * FROM cards;''')
-        cards = cur.fetchall()
-        keys = ['id', 'column_id', 'priority', 'header', 'text']
-        CARDS = [dict(zip(keys, card)) for card in cards]
-        response_object['cards'] = CARDS
+        return None
     cur.close()
     conn.close()
     return jsonify(response_object)

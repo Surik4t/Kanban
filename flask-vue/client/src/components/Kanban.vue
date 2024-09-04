@@ -117,29 +117,12 @@ export default {
           console.error(error);
         });
     },
-    getCards() {
-      const path = 'http://localhost:5000/kanban/cards';
-      axios.get(path)
-        .then((res) => {
-          this.cards = res.data.cards;
-          // eslint-disable-next-line
-          this.columns.forEach(column => {
-            // eslint-disable-next-line
-            column.cards = this.cards.filter(card => card.column_id === column.id);
-          });
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.error(error);
-        });
-    },
     addColumn() {
       const path = 'http://localhost:5000/kanban/columns';
       const payload = { pos: this.columns.length };
       axios.post(path, payload)
         .then(() => {
           this.getColumns();
-          this.getCards();
         })
         .catch((error) => {
           // eslint-disable-next-line
@@ -151,10 +134,6 @@ export default {
       axios.put(path)
         .then(() => {
           this.getColumns();
-          this.getCards();
-        })
-        .then(() => {
-          this.getCards();
         })
         .catch((error) => {
           // eslint-disable-next-line
@@ -178,8 +157,8 @@ export default {
       };
       axios.put(path, payload)
         .then(() => {
+          this.getColumns();
           this.editColumnForm.newColumnTitle = '';
-          this.getCards();
           Object.keys(this.editCardForm).forEach((prop) => {
             this.editCardForm[prop] = '';
           });
@@ -199,7 +178,6 @@ export default {
           .then(() => {
             this.editColumnForm.newColumnTitle = '';
             this.getColumns();
-            this.getCards();
           })
           .catch((error) => {
             // eslint-disable-next-line
@@ -214,7 +192,6 @@ export default {
       axios.delete(path)
         .then(() => {
           this.getColumns();
-          this.getCards();
         })
         .catch((error) => {
           // eslint-disable-next-line
@@ -239,7 +216,7 @@ export default {
       };
       axios.post(path, payload)
         .then(() => {
-          this.getCards();
+          this.getColumns();
           Object.keys(this.editCardForm).forEach((prop) => {
             this.editCardForm[prop] = '';
           });
@@ -247,7 +224,7 @@ export default {
         .catch((error) => {
           // eslint-disable-next-line
           console.error(error);
-          this.getCards();
+          this.getColumns();
           Object.keys(this.editCardForm).forEach((prop) => {
             this.editCardForm[prop] = '';
           });
@@ -258,7 +235,7 @@ export default {
       const path = `http://localhost:5000/kanban/cards/${cardId}`;
       axios.delete(path)
         .then(() => {
-          this.getCards();
+          this.getColumns();
         })
         .catch((error) => {
           // eslint-disable-next-line
@@ -268,7 +245,6 @@ export default {
   },
   created() {
     this.getColumns();
-    this.getCards();
   },
 };
 </script>
