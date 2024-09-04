@@ -102,6 +102,7 @@ export default {
         priority: '',
         header: '',
         text: '',
+        index: '',
       },
     };
   },
@@ -202,8 +203,9 @@ export default {
       const path = 'http://localhost:5000/kanban/updateBoard/';
       axios.put(path, payload);
     },
-    onAddCard(columnId) {
+    onAddCard(columnId, index) {
       this.editCardForm.columnId = columnId;
+      this.editCardForm.index = index;
       this.$refs.addCardModal.show();
     },
     addCard() {
@@ -213,6 +215,7 @@ export default {
         priority: this.editCardForm.priority,
         header: this.editCardForm.header,
         text: this.editCardForm.text,
+        index: this.editCardForm.index,
       };
       axios.post(path, payload)
         .then(() => {

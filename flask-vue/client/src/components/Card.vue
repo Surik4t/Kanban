@@ -37,6 +37,7 @@ export default {
     'priority',
     'header',
     'text',
+    'index',
   ],
   methods: {
     handleDeleteCardButton() {

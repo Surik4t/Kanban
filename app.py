@@ -69,9 +69,9 @@ def all_columns():
         keys = ['pos', 'id', 'title']
         COLUMNS = [dict(zip(keys, column)) for column in columns]
         for column in COLUMNS:
-            cur.execute('''SELECT * FROM cards WHERE column_id = %s;''', (column['id'],))
+            cur.execute('''SELECT * FROM cards WHERE column_id = %s ORDER BY index ASC;''', (column['id'],))
             cards_data = cur.fetchall()
-            keys = ['id', 'column_id', 'priority', 'header', 'text']
+            keys = ['id', 'column_id', 'priority', 'header', 'text', 'index']
             column['cards'] = [dict(zip(keys, card)) for card in cards_data]
         response_object['columns'] = COLUMNS
     cur.close()
@@ -166,9 +166,10 @@ def all_cards():
             post_data.get('priority'),
             post_data.get('header'),
             post_data.get('text'),
+            post_data.get('index')
         )
-        cur.execute('''INSERT INTO cards(id, column_id, priority, header, text)
-                    VALUES (%s, %s, %s, %s, %s);''', 
+        cur.execute('''INSERT INTO cards(id, column_id, priority, header, text, index)
+                    VALUES (%s, %s, %s, %s, %s, %s);''', 
                     new_card
                     )
         conn.commit()
@@ -207,20 +208,29 @@ def single_card(card_id):
     conn.close()
     return jsonify(response_object)
 
-# updating the entire board
 @app.route('/kanban/updateBoard/', methods=['PUT'])
 def updateBoard():
+    conn = db_connection()
+    cur = conn.cursor()
     response_object = {'status': 'success'}
     data = request.json
-    new_card_order = []
     for column in data:
-        column_id = column['id']
+        print('column ID: ', column['id'])
         for card in column['cards']:
-            if card['column_id'] != column_id:
-                card['column_Id'] = column_id
-            new_card_order.append(card)
-    global CARDS
-    CARDS = new_card_order
+            cur.execute('''UPDATE cards SET column_id = %s, index = %s
+                        WHERE id = %s;
+                        ''', (
+                            column['id'], 
+                            column['cards'].index(card), 
+                            card['id']
+                            )
+                        )
+            print(card)
+            print('index: ', column['cards'].index(card))
+    cur.close()
+    conn.commit()
+    conn.close()
+
     return jsonify(response_object)
 
 # BOOK METHODS 

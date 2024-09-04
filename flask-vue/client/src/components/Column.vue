@@ -37,12 +37,13 @@
     :emptyInsertThreshold="50"
     @end="detectChange"
     >
-      <Card v-for="(card, index) in cards" :key="index"
+      <Card v-for="(card) in cards" :key="card.id"
       :id="card.id"
       :columnId="card.column_id"
       :priority="card.priority"
       :header="card.header"
       :text="card.text"
+      :index="card.index"
       @edit-card="handleEditCardButton"
       @delete-card="handleDeleteCardButton"
       />
@@ -100,7 +101,7 @@ export default {
       this.$emit('edit-card', payload);
     },
     handleAddCardButton() {
-      this.$emit('add-card', this.id);
+      this.$emit('add-card', this.id, this.cards.length);
     },
     handleDeleteCardButton(cardId) {
       this.$emit('delete-card', cardId);
@@ -109,13 +110,15 @@ export default {
       this.$emit('delete-column', this.id);
     },
     detectChange(evt) {
-      const allColumns = this.$parent.columns.map(column => ({
-        id: column.id,
-        cards: column.cards,
-      }));
-      this.$emit('update-all-columns', allColumns);
+      if (evt.from !== evt.to || evt.oldIndex !== evt.newIndex) {
+        const allColumns = this.$parent.columns.map(column => ({
+          id: column.id,
+          cards: column.cards,
+        }));
+        this.$emit('update-all-columns', allColumns);
+      }
       // eslint-disable-next-line
-      console.log(evt);
+      console.log(evt, evt.from, evt.to, evt.oldIndex, evt.newIndex);
     },
   },
 };
