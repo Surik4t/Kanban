@@ -5,7 +5,9 @@
     border-dark
     bg-light
     mb-3">
-  <div class="card-header text-end"> {{ priority }} </div>
+  <div class="card-header text-end">
+    {{ priority }}
+  </div>
   <div class="card-body text-dark">
     <h5 class="card-title"> {{ header }} </h5>
     <p class="card-text"> {{ text }} </p>
@@ -58,9 +60,17 @@ export default {
 
 <style scoped>
 .card {
-  background-color: #f0ede0;
   border-width: 3px;
-  border-radius: 15px;
+  border-radius: 10px;
   margin-top: 5px;
+}
+.card-header {
+  background-color: rgb(209, 226, 241);
+}
+.card-body {
+  background-color: aliceblue;
+}
+.card-footer {
+  background-color: rgb(209, 226, 241);
 }
 </style>

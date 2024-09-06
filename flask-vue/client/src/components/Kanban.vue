@@ -256,7 +256,8 @@ export default {
 
 .board {
   padding: 20px;
-  background-color: #E9E5CD;
+  height: 100vh;
+  background-color: #F0F8FF;
 }
 
 .columns {

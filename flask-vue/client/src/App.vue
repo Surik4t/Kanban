@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <nav class="navbar navbar-expand-lg navbar-light bg-info">
+    <nav class="navbar navbar-expand-lg navbar-light bg-info justify-content: space-between">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">KANBAN</a>
         <button class="navbar-toggler"

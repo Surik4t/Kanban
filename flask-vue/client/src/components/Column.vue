@@ -129,7 +129,7 @@ export default {
   width: 30%;
   padding: 10px;
   max-width: 23em;
-  background-color: #f0ede0;
+  background-color: #e6eff7;
   border: 3px solid #070707;
   border-radius: 15px;
   margin-right: 5px;
