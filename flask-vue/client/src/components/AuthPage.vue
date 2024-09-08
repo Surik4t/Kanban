@@ -1,24 +1,86 @@
 <template>
   <div class="auth-page">
     <div class="auth-form">
-      <input type="text" class="form-control mb-3 shadow" placeholder="Username">
-      <input type="text" class="form-control mb-4 shadow" placeholder="Password">
+      <input type="text" class="form-control mb-4 shadow"
+      v-model="username" placeholder="Username">
+      <div class="input-group mb-3 shadow" style="border-radius: 10px;">
+        <input type="password" class="form-control" ref="passwordInput1"
+        v-model="password1" placeholder="Password">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="checkbox" @change="showPass1">
+        </div>
+      </div>
+      <div class="input-group mb-4 shadow" style="border-radius: 10px;" :hidden="!signingUp">
+        <input type="password" class="form-control" ref="passwordInput2"
+        v-model="password2" placeholder="Repeat password">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="checkbox" @change="showPass2">
+        </div>
+      </div>
       <b-button class="shadow mb-5"
         style="min-width: 50%;"
         pill variant="info"
-        id="sign-in">
+        id="sign-in"
+        :hidden="signingUp"
+        @click="onSignInClick">
         Sign in
       </b-button>
-      <p> Don't have an account yet? </p>
+      <p>{{ message }}</p>
+      <p :hidden="signingUp"> Don't have an account yet? </p>
       <b-button class="shadow mb-5"
+        ref="signUpButton"
         style="min-width: 50%;"
         pill variant="outline-info"
-        id="sign-up">
+        id="sign-up"
+        @click="onSignUpClick">
         Sign up
       </b-button>
     </div>
   </div>
 </template>
+
+<script>
+export default {
+  data() {
+    return {
+      signingUp: false,
+      message: '',
+      username: '',
+      password1: '',
+      password2: '',
+    };
+  },
+  methods: {
+    registerUser() {
+
+    },
+    onSignUpClick() {
+      if (this.signingUp === false) {
+        this.signingUp = true;
+      } else {
+        this.registerUser();
+      }
+    },
+    onSignInClick() {
+
+    },
+    showPass1() {
+      if (this.$refs.passwordInput1.type === 'password') {
+        this.$refs.passwordInput1.type = 'text';
+      } else {
+        this.$refs.passwordInput1.type = 'password';
+      }
+    },
+    showPass2() {
+      if (this.$refs.passwordInput2.type === 'password') {
+        this.$refs.passwordInput2.type = 'text';
+      } else {
+        this.$refs.passwordInput2.type = 'password';
+      }
+    },
+  },
+};
+</script>
 
 <style>
 .auth-page{
