@@ -26,15 +26,10 @@ USERS = {}
 
 @app.route("/get_session", methods=["GET"])
 def auth():
-    try:
-        print(session)
-        if "user" in session:
-            return jsonify({"message": f"session for user {session[user]} is open"})
-        else:
-            return jsonify({"message": "User is not authenticated"}), 401
-    except Exception as e:
-        print("exception", {e})
-        return jsonify({"message": f"{e}"})
+      print(session)
+      if "user" in session:
+          return jsonify({"message": f"session for user {session["user"]} is open"})
+      return jsonify({"message": "User is not authenticated"}), 401
         
 
 
@@ -45,7 +40,7 @@ def users():
     password = credentials["password"]
     print(user, USERS)
     if user in USERS and password == USERS[user]:
-        session["user"] = "user"
+        session["user"] = user
         print(session)
         return jsonify({"message": "login successful"})
     return jsonify({"message": "Invalid credentials"}), 401
