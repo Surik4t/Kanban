@@ -1,24 +1,65 @@
-from flask import Flask, jsonify, request
+from flask import Flask, session, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
 import psycopg2, os
 import uuid
 
-# configuration
 DEBUG = True
 
-# instantiate the app
-app = Flask(__name__)
-app.config.from_object(__name__)
-
-# enable CORS
-CORS(app)
-
 load_dotenv()
+APP_SECRET_KEY = os.getenv("APP_SECRET_KEY")
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
 DB_HOST = os.getenv("DB_HOST")
+
+# instantiate the app
+app = Flask(__name__)
+app.secret_key = APP_SECRET_KEY
+app.config.from_object(__name__)
+
+# enable CORS
+CORS(app, supports_credentials=True, origins=["http://localhost:8080"])
+
+USERS = {}
+
+
+@app.route("/get_session", methods=["GET"])
+def auth():
+    try:
+        print(session)
+        if "user" in session:
+            return jsonify({"message": f"session for user {session[user]} is open"})
+        else:
+            return jsonify({"message": "User is not authenticated"}), 401
+    except Exception as e:
+        print("exception", {e})
+        return jsonify({"message": f"{e}"})
+        
+
+
+@app.route("/login", methods=["PUT"])
+def users():
+    credentials = request.get_json("username")
+    user = credentials["username"]
+    password = credentials["password"]
+    print(user, USERS)
+    if user in USERS and password == USERS[user]:
+        session["user"] = "user"
+        print(session)
+        return jsonify({"message": "login successful"})
+    return jsonify({"message": "Invalid credentials"}), 401
+
+
+@app.route("/register", methods=["POST"])
+def user():
+    response_object = {"status": "success"}
+    credentials = request.get_json("username")
+    username = credentials["username"]
+    password = credentials["password"]
+    USERS[username] = password
+    print(USERS)
+    return response_object
 
 
 # connection to DB

@@ -40,6 +40,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -51,8 +53,25 @@ export default {
     };
   },
   methods: {
+    getSession() {
+      const response = axios.get('http://localhost:5000/get_session', { withCredentials: true });
+      // eslint-disable-next-line
+      console.log(response.message);
+    },
     registerUser() {
-
+      try {
+        const payload = {
+          username: this.username,
+          password: this.password1,
+        };
+        const path = 'http://localhost:5000/register';
+        const response = axios.post(path, payload, { withCredentials: true });
+        // eslint-disable-next-line
+        console.log(response.data);
+      } catch (error) {
+        // eslint-disable-next-line
+        console.error("Registration error:", error);
+      }
     },
     onSignUpClick() {
       if (this.signingUp === false) {
@@ -62,7 +81,19 @@ export default {
       }
     },
     onSignInClick() {
-
+      try {
+        const payload = {
+          username: this.username,
+          password: this.password1,
+        };
+        const path = 'http://localhost:5000/login';
+        const response = axios.put(path, payload, { withCredentials: true });
+        // eslint-disable-next-line
+        console.log(response.data);
+      } catch (error) {
+        // eslint-disable-next-line
+        console.error("Log in error", error);
+      }
     },
     showPass1() {
       if (this.$refs.passwordInput1.type === 'password') {
@@ -78,6 +109,9 @@ export default {
         this.$refs.passwordInput2.type = 'password';
       }
     },
+  },
+  created() {
+    this.getSession();
   },
 };
 </script>
