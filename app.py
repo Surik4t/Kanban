@@ -24,13 +24,18 @@ CORS(app, supports_credentials=True, origins=["http://localhost:8080"])
 USERS = {}
 
 
+# authentication methods
 @app.route("/get_session", methods=["GET"])
 def auth():
-      print(session)
-      if "user" in session:
-          return jsonify({"message": f"session for user {session["user"]} is open"})
-      return jsonify({"message": "User is not authenticated"}), 401
-        
+    print(session)
+    if "user" in session:
+        return jsonify(
+            {
+                "message": f"session for user {session['user']} is open",
+                "user": session["user"],
+            }
+        )
+    return jsonify({"message": "User is not authenticated"}), 401
 
 
 @app.route("/login", methods=["PUT"])
@@ -41,9 +46,16 @@ def users():
     print(user, USERS)
     if user in USERS and password == USERS[user]:
         session["user"] = user
-        print(session)
         return jsonify({"message": "login successful"})
     return jsonify({"message": "Invalid credentials"}), 401
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    response = jsonify({"message": "logged out successfully"})
+    response.delete_cookie("session")
+    session.clear()
+    return response
 
 
 @app.route("/register", methods=["POST"])

@@ -53,11 +53,6 @@ export default {
     };
   },
   methods: {
-    getSession() {
-      const response = axios.get('http://localhost:5000/get_session', { withCredentials: true });
-      // eslint-disable-next-line
-      console.log(response.message);
-    },
     registerUser() {
       try {
         const payload = {
@@ -109,9 +104,6 @@ export default {
         this.$refs.passwordInput2.type = 'password';
       }
     },
-  },
-  created() {
-    this.getSession();
   },
 };
 </script>
