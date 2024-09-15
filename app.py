@@ -1,6 +1,13 @@
-from flask import Flask, session, jsonify, request
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+    get_jwt,
+)
 import psycopg2, os
 import uuid
 
@@ -17,56 +24,13 @@ DB_HOST = os.getenv("DB_HOST")
 app = Flask(__name__)
 app.secret_key = APP_SECRET_KEY
 app.config.from_object(__name__)
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+jwt = JWTManager(app)
 
 # enable CORS
 CORS(app, supports_credentials=True, origins=["http://localhost:8080"])
 
-USERS = {}
-
-
-# authentication methods
-@app.route("/get_session", methods=["GET"])
-def auth():
-    print(session)
-    if "user" in session:
-        return jsonify(
-            {
-                "message": f"session for user {session['user']} is open",
-                "user": session["user"],
-            }
-        )
-    return jsonify({"message": "User is not authenticated"}), 401
-
-
-@app.route("/login", methods=["PUT"])
-def users():
-    credentials = request.get_json("username")
-    user = credentials["username"]
-    password = credentials["password"]
-    print(user, USERS)
-    if user in USERS and password == USERS[user]:
-        session["user"] = user
-        return jsonify({"message": "login successful"})
-    return jsonify({"message": "Invalid credentials"}), 401
-
-
-@app.route("/logout", methods=["POST"])
-def logout():
-    response = jsonify({"message": "logged out successfully"})
-    response.delete_cookie("session")
-    session.clear()
-    return response
-
-
-@app.route("/register", methods=["POST"])
-def user():
-    response_object = {"status": "success"}
-    credentials = request.get_json("username")
-    username = credentials["username"]
-    password = credentials["password"]
-    USERS[username] = password
-    print(USERS)
-    return response_object
+USERS = {"test": "test"}
 
 
 # connection to DB
@@ -79,6 +43,84 @@ def db_connection():
     except Exception as e:
         print(f"error connecting to database: {e}")
         return None
+
+
+# authentication methods
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
+    print(jwt_payload)
+    token = None
+    jti = jwt_payload["jti"]
+    conn = db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            """SELECT * FROM expired_tokens
+            WHERE jti = %s;""",
+            (jti,),
+        )
+        token = cur.fetchone()
+        print(token)
+    except Exception as e:
+        print(f"exception requesting expired tokens database: {e}")
+    cur.close()
+    conn.close()
+    return token is not None
+
+
+@app.route("/get_session", methods=["GET"])
+@jwt_required()
+def get_session():
+    current_user = get_jwt_identity()
+    return (
+        jsonify({"message": f"logged in as '{current_user}'", "user": current_user}),
+        200,
+    )
+
+
+@app.route("/login", methods=["PUT"])
+def login():
+    credentials = request.get_json("username")
+    user = credentials["username"]
+    password = credentials["password"]
+    print(user, USERS)
+    if user in USERS and password == USERS[user]:
+        token = create_access_token(identity=user)
+        print(token)
+        return jsonify({"message": "login successful", "token": token})
+    return jsonify({"message": "Invalid credentials"}), 401
+
+
+@app.route("/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    conn = db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            """INSERT INTO expired_tokens(jti)
+                    VALUES(%s);""",
+            (jti,),
+        )
+        conn.commit()
+        response = jsonify({"message": "logged out successfully"})
+    except Exception as e:
+        response = jsonify({"error": f"error logging out: {e}"})
+    cur.close()
+    conn.close()
+    return response
+
+
+@app.route("/register", methods=["POST"])
+def register():
+    response_object = {"status": "success"}
+    credentials = request.get_json("username")
+    username = credentials["username"]
+    password = credentials["password"]
+    USERS[username] = password
+    print(USERS)
+    return response_object
 
 
 # COLUMN METHODS

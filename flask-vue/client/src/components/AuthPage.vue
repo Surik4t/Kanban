@@ -82,9 +82,13 @@ export default {
           password: this.password1,
         };
         const path = 'http://localhost:5000/login';
-        const response = axios.put(path, payload, { withCredentials: true });
-        // eslint-disable-next-line
-        console.log(response.data);
+        axios.put(path, payload, { withCredentials: true })
+          .then((response) => {
+            // eslint-disable-next-line
+            console.log(response.data);
+            localStorage.setItem('token', response.data.token);
+            this.$router.push('/profile');
+          });
       } catch (error) {
         // eslint-disable-next-line
         console.error("Log in error", error);

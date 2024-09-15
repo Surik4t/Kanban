@@ -16,9 +16,11 @@ export default {
   },
   methods: {
     getSession() {
-      axios.get('http://localhost:5000/get_session', { withCredentials: true })
+      const token = localStorage.getItem('token');
+      axios.get('http://localhost:5000/get_session',
+        { withCredentials: true, headers: { Authorization: `Bearer ${token}` } })
         .then((response) => {
-          if (response.status === 200 && response.data.user) {
+          if (response.status === 200) {
             this.user = response.data.user;
           } else {
             this.$router.push('/auth');

@@ -43,7 +43,9 @@ export default {
   methods: {
     homePageRedirect() {
       axios.get('http://localhost:5000/get_session', { withCredentials: true })
-        .then(() => {
+        .then((response) => {
+          // eslint-disable-next-line
+          console.log(response.data.message)
           this.$router.push('/');
         })
         .catch(() => {
@@ -51,7 +53,9 @@ export default {
         });
     },
     logout() {
-      axios.post('http://localhost:5000/logout', { withCredentials: true })
+      const token = localStorage.getItem('token');
+      axios.post('http://localhost:5000/logout', {},
+        { withCredentials: true, headers: { Authorization: `Bearer ${token}` } })
         .then((response) => {
           // eslint-disable-next-line
           console.log(response);
