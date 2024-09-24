@@ -53,19 +53,60 @@ export default {
     };
   },
   methods: {
+    checkUsername() {
+      this.message = '';
+      // eslint-disable-next-line
+      const regex = /[!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?]+/;
+      if (this.username.length < 4 || this.username.length > 16) {
+        this.message = 'Username must be 4 to 16 characters long.';
+        return false;
+      } else if (regex.test(this.username)) {
+        this.message = 'Username must not contain any special characters except underscore.';
+        return false;
+      } else if (/[ ]+/.test(this.username)) {
+        this.message = 'Username must not contain spaces.';
+        return false;
+      }
+      // eslint-disable-next-line
+      console.log('good username');
+      return true;
+    },
+    checkPassword() {
+      this.message = '';
+      // eslint-disable-next-line
+      const regex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?0-9]+/;
+      if (this.password1 !== this.password2) {
+        this.message = 'Passwords do not match.';
+        return false;
+      } else if (this.password1.length < 8 || this.password1.length > 16) {
+        this.message = 'Password must be 8 to 16 characters long.';
+        return false;
+      } else if (!regex.test(this.password1)) {
+        this.message = 'Password must contain at least one digit or a special character.';
+        return false;
+      } else if (/[ ]+/.test(this.password1)) {
+        this.message = 'Password must not contain spaces.';
+        return false;
+      }
+      // eslint-disable-next-line
+      console.log('good password');
+      return true;
+    },
     registerUser() {
-      try {
-        const payload = {
-          username: this.username,
-          password: this.password1,
-        };
-        const path = 'http://localhost:5000/register';
-        const response = axios.post(path, payload, { withCredentials: true });
-        // eslint-disable-next-line
-        console.log(response.data);
-      } catch (error) {
-        // eslint-disable-next-line
-        console.error("Registration error:", error);
+      if (this.checkUsername() && this.checkPassword()) {
+        try {
+          const payload = {
+            username: this.username,
+            password: this.password1,
+          };
+          const path = 'http://localhost:5000/register';
+          const response = axios.post(path, payload, { withCredentials: true });
+          // eslint-disable-next-line
+          console.log(response.data);
+        } catch (error) {
+          // eslint-disable-next-line
+          console.error("Registration error:", error);
+        }
       }
     },
     onSignUpClick() {
