@@ -104,6 +104,8 @@ def login():
     if not password_is_valid:
         return jsonify({"error": "Invalid credentials"}), 401
     token = create_access_token(identity=user)
+    cur.close()
+    conn.close()
     return jsonify({"message": "login successful", "token": token})
 
 
