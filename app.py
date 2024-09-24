@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
+from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
     JWTManager,
     create_access_token,
@@ -26,6 +27,7 @@ app.secret_key = APP_SECRET_KEY
 app.config.from_object(__name__)
 app.config["JWT_TOKEN_LOCATION"] = ["headers"]
 jwt = JWTManager(app)
+bcrypt = Bcrypt(app)
 
 # enable CORS
 CORS(app, supports_credentials=True, origins=["http://localhost:8080"])
@@ -81,14 +83,58 @@ def get_session():
 @app.route("/login", methods=["PUT"])
 def login():
     credentials = request.get_json("username")
-    user = credentials["username"]
+    username = credentials["username"]
     password = credentials["password"]
-    print(user, USERS)
-    if user in USERS and password == USERS[user]:
-        token = create_access_token(identity=user)
-        print(token)
-        return jsonify({"message": "login successful", "token": token})
-    return jsonify({"message": "Invalid credentials"}), 401
+    conn = db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            """SELECT username, password FROM users
+                    WHERE username = %s;""",
+            (username,),
+        )
+        user = cur.fetchone()
+    except Exception as e:
+        print(f"database exception: {e}")
+        return jsonify({"error": f"exception raised: {e}"}), 500
+
+    if not user:
+        return jsonify({"error": "Invalid credentials"}), 401
+    password_is_valid = bcrypt.check_password_hash(user[1], password)
+    if not password_is_valid:
+        return jsonify({"error": "Invalid credentials"}), 401
+    token = create_access_token(identity=user)
+    return jsonify({"message": "login successful", "token": token})
+
+
+@app.route("/register", methods=["POST"])
+def register():
+    credentials = request.get_json("username")
+    username = credentials["username"]
+    password = credentials["password"]
+    hash = bcrypt.generate_password_hash(password.encode("utf8"), 10)
+    hash = hash.decode("utf-8")
+    print(hash)
+    conn = db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""SELECT * FROM users WHERE username = %s;""", (username,))
+        username_exists = cur.fetchall()
+        print(type(username_exists))
+        if username_exists:
+            return jsonify({"error": "Username already exists."}), 409
+        cur.execute(
+            """INSERT INTO users(username, password)
+                    values(%s, %s);""",
+            (username, hash),
+        )
+        conn.commit()
+    except Exception as e:
+        print(f"exception creating user: {e}")
+        return jsonify({"error": f"exception creating user: {e}"}), 500
+    cur.close()
+    conn.close()
+    return jsonify({"message": "registration complete"}), 200
 
 
 @app.route("/logout", methods=["POST"])
@@ -110,17 +156,6 @@ def logout():
     cur.close()
     conn.close()
     return response
-
-
-@app.route("/register", methods=["POST"])
-def register():
-    response_object = {"status": "success"}
-    credentials = request.get_json("username")
-    username = credentials["username"]
-    password = credentials["password"]
-    USERS[username] = password
-    print(USERS)
-    return response_object
 
 
 # COLUMN METHODS

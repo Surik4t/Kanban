@@ -26,6 +26,8 @@
         Sign in
       </b-button>
       <p>{{ message }}</p>
+      <p :hidden="regMessageHidden" ref="registrationCompleteMessage">
+      Acoount created, now you may <a href="/auth">sign in</a>.</p>
       <p :hidden="signingUp"> Don't have an account yet? </p>
       <b-button class="shadow mb-5"
         ref="signUpButton"
@@ -41,11 +43,13 @@
 
 <script>
 import axios from 'axios';
+import { SHA256 } from 'crypto-js';
 
 export default {
   data() {
     return {
       signingUp: false,
+      regMessageHidden: true,
       message: '',
       username: '',
       password1: '',
@@ -54,7 +58,6 @@ export default {
   },
   methods: {
     checkUsername() {
-      this.message = '';
       // eslint-disable-next-line
       const regex = /[!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?]+/;
       if (this.username.length < 4 || this.username.length > 16) {
@@ -72,7 +75,6 @@ export default {
       return true;
     },
     checkPassword() {
-      this.message = '';
       // eslint-disable-next-line
       const regex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?0-9]+/;
       if (this.password1 !== this.password2) {
@@ -93,20 +95,24 @@ export default {
       return true;
     },
     registerUser() {
+      this.message = '';
       if (this.checkUsername() && this.checkPassword()) {
-        try {
-          const payload = {
-            username: this.username,
-            password: this.password1,
-          };
-          const path = 'http://localhost:5000/register';
-          const response = axios.post(path, payload, { withCredentials: true });
-          // eslint-disable-next-line
-          console.log(response.data);
-        } catch (error) {
-          // eslint-disable-next-line
-          console.error("Registration error:", error);
-        }
+        const payload = {
+          username: this.username,
+          password: SHA256(this.password1).toString(),
+        };
+        const path = 'http://localhost:5000/register';
+        axios.post(path, payload, { withCredentials: true })
+          .then((response) => {
+            if (response.status === 200) {
+              this.regMessageHidden = false;
+            }
+          })
+          .catch((error) => {
+            this.message = error.response.data.error;
+            // eslint-disable-next-line
+            console.error(error);
+          });
       }
     },
     onSignUpClick() {
@@ -117,23 +123,24 @@ export default {
       }
     },
     onSignInClick() {
-      try {
-        const payload = {
-          username: this.username,
-          password: this.password1,
-        };
-        const path = 'http://localhost:5000/login';
-        axios.put(path, payload, { withCredentials: true })
-          .then((response) => {
-            // eslint-disable-next-line
-            console.log(response.data);
-            localStorage.setItem('token', response.data.token);
-            this.$router.push('/profile');
-          });
-      } catch (error) {
-        // eslint-disable-next-line
-        console.error("Log in error", error);
-      }
+      this.message = '';
+      const payload = {
+        username: this.username,
+        password: SHA256(this.password1).toString(),
+      };
+      const path = 'http://localhost:5000/login';
+      axios.put(path, payload, { withCredentials: true })
+        .then((response) => {
+          // eslint-disable-next-line
+          console.log(response.data);
+          localStorage.setItem('token', response.data.token);
+          this.$router.push('/profile');
+        })
+        .catch((error) => {
+          this.message = error.response.data.error;
+          // eslint-disable-next-line
+          console.error(error, 'sadsad');
+        });
     },
     showPass1() {
       if (this.$refs.passwordInput1.type === 'password') {
@@ -149,6 +156,9 @@ export default {
         this.$refs.passwordInput2.type = 'password';
       }
     },
+  },
+  created() {
+    this.regMessageHidden = true;
   },
 };
 </script>

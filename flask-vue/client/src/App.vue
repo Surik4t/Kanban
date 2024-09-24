@@ -19,7 +19,7 @@
               <button class="nav-link" @click="homePageRedirect">Home</button>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/profile">Profile</a>
+              <button class="nav-link" @click="profilePageRedirect">Profile</button>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/kanban">Board</a>
@@ -50,6 +50,21 @@ export default {
         })
         .catch(() => {
           this.$router.push('/');
+        });
+    },
+    profilePageRedirect() {
+      const token = localStorage.getItem('token');
+      axios.get('http://localhost:5000/get_session',
+        { withCredentials: true, headers: { Authorization: `Bearer ${token}` } })
+        .then((response) => {
+          if (response.status === 200) {
+            this.$router.push('/profile');
+          } else {
+            this.$router.push('/auth');
+          }
+        })
+        .catch(() => {
+          this.$router.push('/auth');
         });
     },
     logout() {
