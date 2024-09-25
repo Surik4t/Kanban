@@ -16,9 +16,6 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <button class="nav-link" @click="homePageRedirect">Home</button>
-            </li>
-            <li class="nav-item">
               <button class="nav-link" @click="profilePageRedirect">Profile</button>
             </li>
             <li class="nav-item">
@@ -41,40 +38,57 @@ import axios from 'axios';
 export default {
   name: 'App',
   methods: {
-    homePageRedirect() {
-      axios.get('http://localhost:5000/get_session', { withCredentials: true })
-        .then((response) => {
-          // eslint-disable-next-line
-          console.log(response.data.message)
-          this.$router.push('/');
-        })
-        .catch(() => {
-          this.$router.push('/');
-        });
-    },
     profilePageRedirect() {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       axios.get('http://localhost:5000/get_session',
         { withCredentials: true, headers: { Authorization: `Bearer ${token}` } })
         .then((response) => {
           if (response.status === 200) {
             this.$router.push('/profile');
-          } else {
-            this.$router.push('/auth');
           }
         })
-        .catch(() => {
+        .catch((error) => {
+          if (error.response.status === 401) {
+            this.refreshToken();
+          }
+          this.message = error.response.data.error;
+          // eslint-disable-next-line
+          console.error(error);
+        });
+    },
+    refreshToken() {
+      const refreshToken = localStorage.getItem('refresh_token');
+      axios.post('http://localhost:5000/refresh', {},
+        { withCredentials: true, headers: { Authorization: `Bearer ${refreshToken}` } })
+        .then((response) => {
+          localStorage.setItem('access_token', response.data.access_token);
+          this.$router.push('/profile');
+        })
+        .catch((error) => {
           this.$router.push('/auth');
+          // eslint-disable-next-line
+          console.error(error);
         });
     },
     logout() {
-      const token = localStorage.getItem('token');
-      axios.post('http://localhost:5000/logout', {},
+      const token = localStorage.getItem('access_token');
+      axios.post('http://localhost:5000/revoke_access_token', {},
         { withCredentials: true, headers: { Authorization: `Bearer ${token}` } })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+        });
+      const refr = localStorage.getItem('refresh_token');
+      axios.post('http://localhost:5000/revoke_refresh_token', {},
+        { withCredentials: true, headers: { Authorization: `Bearer ${refr}` } })
         .then((response) => {
           this.$router.push('/auth');
           // eslint-disable-next-line
           console.log(response);
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
         });
     },
   },

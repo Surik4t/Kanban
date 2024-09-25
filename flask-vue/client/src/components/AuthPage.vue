@@ -133,13 +133,14 @@ export default {
         .then((response) => {
           // eslint-disable-next-line
           console.log(response.data);
-          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('access_token', response.data.access_token);
+          localStorage.setItem('refresh_token', response.data.refresh_token);
           this.$router.push('/profile');
         })
         .catch((error) => {
           this.message = error.response.data.error;
           // eslint-disable-next-line
-          console.error(error, 'sadsad');
+          console.error(error);
         });
     },
     showPass1() {

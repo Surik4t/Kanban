@@ -1,10 +1,12 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from datetime import timedelta
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
     JWTManager,
     create_access_token,
+    create_refresh_token,
     jwt_required,
     get_jwt_identity,
     get_jwt,
@@ -26,6 +28,8 @@ app = Flask(__name__)
 app.secret_key = APP_SECRET_KEY
 app.config.from_object(__name__)
 app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=60)
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(hours=24)
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
@@ -50,7 +54,6 @@ def db_connection():
 # authentication methods
 @jwt.token_in_blocklist_loader
 def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
-    print(jwt_payload)
     token = None
     jti = jwt_payload["jti"]
     conn = db_connection()
@@ -62,7 +65,6 @@ def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
             (jti,),
         )
         token = cur.fetchone()
-        print(token)
     except Exception as e:
         print(f"exception requesting expired tokens database: {e}")
     cur.close()
@@ -75,9 +77,18 @@ def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
 def get_session():
     current_user = get_jwt_identity()
     return (
-        jsonify({"message": f"logged in as '{current_user[0]}'", "user": current_user[0]}),
+        jsonify(
+            {"message": f"logged in as '{current_user[0]}'", "user": current_user[0]}
+        ),
         200,
     )
+
+@app.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    user = get_jwt_identity()
+    access_token = create_access_token(identity=user)
+    return jsonify({"message": "access token refreshed", "access_token": access_token})
 
 
 @app.route("/login", methods=["PUT"])
@@ -103,10 +114,17 @@ def login():
     password_is_valid = bcrypt.check_password_hash(user[1], password)
     if not password_is_valid:
         return jsonify({"error": "Invalid credentials"}), 401
-    token = create_access_token(identity=user)
+    access_token = create_access_token(identity=user)
+    refresh_token = create_refresh_token(identity=user)
     cur.close()
     conn.close()
-    return jsonify({"message": "login successful", "token": token})
+    return jsonify(
+        {
+            "message": "login successful",
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+        }
+    )
 
 
 @app.route("/register", methods=["POST"])
@@ -139,10 +157,33 @@ def register():
     return jsonify({"message": "registration complete"}), 200
 
 
-@app.route("/logout", methods=["POST"])
+@app.route("/revoke_access_token", methods=["POST"])
 @jwt_required()
-def logout():
+def revoke_access_token():
     jti = get_jwt()["jti"]
+    print("jti:", jti)
+    conn = db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            """INSERT INTO expired_tokens(jti)
+                    VALUES(%s);""",
+            (jti,),
+        )
+        conn.commit()
+        response = jsonify({"message": "logged out successfully"})
+    except Exception as e:
+        response = jsonify({"error": f"error logging out: {e}"})
+    cur.close()
+    conn.close()
+    return response
+
+
+@app.route("/revoke_refresh_token", methods=["POST"])
+@jwt_required(refresh=True)
+def revoke_refresh_token():
+    jti = get_jwt()["jti"]
+    print("jti:", jti)
     conn = db_connection()
     cur = conn.cursor()
     try:
