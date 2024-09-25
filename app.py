@@ -75,7 +75,7 @@ def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
 def get_session():
     current_user = get_jwt_identity()
     return (
-        jsonify({"message": f"logged in as '{current_user}'", "user": current_user}),
+        jsonify({"message": f"logged in as '{current_user[0]}'", "user": current_user[0]}),
         200,
     )
 

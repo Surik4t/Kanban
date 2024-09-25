@@ -72,6 +72,7 @@ export default {
       axios.post('http://localhost:5000/logout', {},
         { withCredentials: true, headers: { Authorization: `Bearer ${token}` } })
         .then((response) => {
+          this.$router.push('/auth');
           // eslint-disable-next-line
           console.log(response);
         });
