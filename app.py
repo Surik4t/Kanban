@@ -83,12 +83,20 @@ def get_session():
         200,
     )
 
+
 @app.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh():
     user = get_jwt_identity()
     access_token = create_access_token(identity=user)
-    return jsonify({"message": "access token refreshed", "access_token": access_token})
+    return jsonify(
+        {
+            "message": "access token refreshed",
+            "access_token": access_token,
+            "user": user[0],
+        },
+        200,
+    )
 
 
 @app.route("/login", methods=["PUT"])

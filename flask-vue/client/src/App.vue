@@ -44,7 +44,8 @@ export default {
         { withCredentials: true, headers: { Authorization: `Bearer ${token}` } })
         .then((response) => {
           if (response.status === 200) {
-            this.$router.push('/profile');
+            const user = response.data.user;
+            this.$router.push(`/profile/${user}`);
           }
         })
         .catch((error) => {
@@ -62,7 +63,8 @@ export default {
         { withCredentials: true, headers: { Authorization: `Bearer ${refreshToken}` } })
         .then((response) => {
           localStorage.setItem('access_token', response.data.access_token);
-          this.$router.push('/profile');
+          const user = response.data.user;
+          this.$router.push(`/profile/${user}`);
         })
         .catch((error) => {
           this.$router.push('/auth');

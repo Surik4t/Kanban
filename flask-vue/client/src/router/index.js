@@ -25,7 +25,7 @@ export default new Router({
       component: Kanban,
     },
     {
-      path: '/profile',
+      path: '/profile/:user',
       name: 'User profile',
       component: Profile,
     },
