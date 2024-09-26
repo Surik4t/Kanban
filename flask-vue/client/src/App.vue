@@ -51,10 +51,11 @@ export default {
         .catch((error) => {
           if (error.response.status === 401) {
             this.refreshToken();
+          } else {
+            this.$router.push('/auth');
+            // eslint-disable-next-line
+            console.error(error);
           }
-          this.message = error.response.data.error;
-          // eslint-disable-next-line
-          console.error(error);
         });
     },
     refreshToken() {

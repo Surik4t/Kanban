@@ -76,11 +76,8 @@ def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
 @jwt_required()
 def get_session():
     current_user = get_jwt_identity()
-    return (
-        jsonify(
-            {"message": f"logged in as '{current_user[0]}'", "user": current_user[0]}
-        ),
-        200,
+    return jsonify(
+        {"message": f"logged in as '{current_user[0]}'", "user": current_user[0]}
     )
 
 
@@ -94,8 +91,7 @@ def refresh():
             "message": "access token refreshed",
             "access_token": access_token,
             "user": user[0],
-        },
-        200,
+        }
     )
 
 
