@@ -4,29 +4,38 @@
       <div class="left-side">
         <img src="../assets/logo.png" style="border: 2px;">
         <div>
-          <b-button class="shadow mb-3">button 1</b-button>
+          <b-button class="shadow mb-3"
+            style="min-width: 75%;"
+            pill variant="info">
+            Edit profile picture
+          </b-button>
         </div>
         <div>
-        <b-button class="shadow mb-3">button 2</b-button>
+          <b-button class="shadow mb-3"
+            style="min-width: 75%;"
+            pill variant="info"
+            @click="toEditProfilePage">
+            Edit personal information
+          </b-button>
         </div>
       </div>
       <div class="right-side">
-        <table class="table">
+        <table class="table table-bordered" style="max-width: 750px;">
           <tbody>
-            <tr>
-              <th scope="row">Username</th>
-              <td>{{ user }}</td>
+            <tr class="table-primary">
+              <th style="width:30%" scope="row">Username</th>
+              <td>{{ username }}</td>
             </tr>
-            <tr>
-              <th scope="row">Bio</th>
+            <tr class="table-info">
+              <th style="width:30%" scope="row">Bio</th>
               <td>{{ bio }}</td>
             </tr>
-            <tr>
-              <th scope="row">E-mail</th>
-              <td>{{ email }}</td>
+            <tr class="table-primary">
+              <th style="width:30%" scope="row">E-mail</th>
+              <td>{{ mail }}</td>
             </tr>
-            <tr>
-              <th scope="row">Phone number</th>
+            <tr class="table-info">
+              <th style="width:30%" scope="row">Phone number</th>
               <td>{{ phone }}</td>
             </tr>
           </tbody>
@@ -42,9 +51,9 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      user: '',
+      username: '',
       bio: '',
-      email: '',
+      mail: '',
       phone: '',
     };
   },
@@ -55,7 +64,8 @@ export default {
         { withCredentials: true, headers: { Authorization: `Bearer ${token}` } })
         .then((response) => {
           if (response.status === 200) {
-            this.user = response.data.user;
+            this.username = response.data.user;
+            this.getUserInfo();
           }
         })
         .catch((error) => {
@@ -78,6 +88,23 @@ export default {
           console.error(error);
         });
     },
+    getUserInfo() {
+      axios.get(`http://localhost:5000/get_user_info/${this.username}`)
+        .then((response) => {
+          if (response.status === 200) {
+            this.bio = response.data.bio;
+            this.mail = response.data.mail;
+            this.phone = response.data.phone;
+          }
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+        });
+    },
+    toEditProfilePage() {
+      this.$router.push('/profile-edit');
+    },
   },
   created() {
     this.getSession();
@@ -95,13 +122,13 @@ export default {
 }
 .account-info {
   display: flex;
-  background-color: aqua;
+  background-color: lightblue;
 }
 .left-side {
   min-width: 300px;
   justify-content: space-between;
   text-align: center;
-  background-color: aquamarine;
+  background-color: rgb(209, 226, 241);
 }
 .right-side {
   min-width: 600px;

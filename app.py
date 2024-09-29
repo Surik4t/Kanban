@@ -81,6 +81,60 @@ def get_session():
     )
 
 
+@app.route("/get_user_info/<user>", methods=["GET"])
+def get_user_info(user):
+    print(user)
+    conn = db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute(
+            """SELECT bio, mail, phone FROM users
+                    WHERE username = %s""",
+            (user,),
+        )
+        keys = ["bio", "mail", "phone"]
+        data = dict(zip(keys, cur.fetchone()))
+        cur.close()
+        conn.close()
+        return jsonify(
+            {"bio": data["bio"], "mail": data["mail"], "phone": data["phone"]}
+        )
+    except Exception as e:
+        print(e)
+        cur.close()
+        conn.close()
+        return jsonify({"error": f"database error: {e}"}), 500
+
+
+@app.route("/upload_user_info", methods=["PUT"])
+def upload_user_info():
+    data = request.get_json()
+    username = data["username"]
+    bio = data["bio"]
+    mail = data["mail"]
+    phone = data["phone"]
+    conn = db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute(
+            """UPDATE users
+                    SET bio = %s, mail = %s, phone = %s
+                    WHERE username = %s""",
+            (bio, mail, phone, username),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"message": "user info updated"}), 200
+    except Exception as e:
+        print(e)
+        cur.close()
+        conn.close()
+        return jsonify({"error": f"database error: {e}"}), 500
+
+
 @app.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh():

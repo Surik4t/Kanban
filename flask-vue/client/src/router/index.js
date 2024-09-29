@@ -4,6 +4,7 @@ import Home from '@/components/Home';
 import Kanban from '@/components/Kanban';
 import AuthPage from '@/components/AuthPage';
 import Profile from '@/components/Profile';
+import ProfileEdit from '@/components/ProfileEdit';
 
 Vue.use(Router);
 
@@ -23,6 +24,11 @@ export default new Router({
       path: '/kanban',
       name: 'Kanban',
       component: Kanban,
+    },
+    {
+      path: '/profile-edit',
+      name: 'Profile Edit',
+      component: ProfileEdit,
     },
     {
       path: '/profile/:user',
