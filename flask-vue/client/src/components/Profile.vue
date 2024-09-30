@@ -2,9 +2,16 @@
   <div class="profile-page">
     <div class="account-info">
       <div class="left-side">
-        <img src="../assets/logo.png" style="border: 2px;">
+        <img ref="profilePic"
+          :src="profilePic"
+          style="
+          border: 2px;
+          width: 250px;
+          height: 250px;
+          padding-top: 1em;
+          background: url('./static/default.jpg')">
         <div>
-          <b-button class="shadow mb-3"
+          <b-button class="shadow mb-3 mt-3"
             style="min-width: 75%;"
             pill variant="info">
             Edit profile picture
@@ -23,19 +30,19 @@
         <table class="table table-bordered" style="max-width: 750px;">
           <tbody>
             <tr class="table-primary">
-              <th style="width:30%" scope="row">Username</th>
+              <th style="width:20%" scope="row">Username</th>
               <td>{{ username }}</td>
             </tr>
             <tr class="table-info">
-              <th style="width:30%" scope="row">Bio</th>
+              <th style="width:20%" scope="row">Bio</th>
               <td>{{ bio }}</td>
             </tr>
             <tr class="table-primary">
-              <th style="width:30%" scope="row">E-mail</th>
+              <th style="width:20%" scope="row">E-mail</th>
               <td>{{ mail }}</td>
             </tr>
             <tr class="table-info">
-              <th style="width:30%" scope="row">Phone number</th>
+              <th style="width:20%" scope="row">Phone number</th>
               <td>{{ phone }}</td>
             </tr>
           </tbody>
@@ -55,9 +62,24 @@ export default {
       bio: '',
       mail: '',
       phone: '',
+      // eslint-disable-next-line
+      profilePic: require('../imgs/default.jpg'),
     };
   },
   methods: {
+    getProfilePic() {
+      axios.put(`http://localhost:5000/picture/${this.username}`)
+        .then((response) => {
+          if (response.status === 200) {
+            // eslint-disable-next-line
+            this.$refs.profilePic.src = require('../imgs/' + this.username + '.jpg');
+          }
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+        });
+    },
     getSession() {
       const token = localStorage.getItem('access_token');
       axios.get('http://localhost:5000/get_session',
@@ -89,9 +111,12 @@ export default {
         });
     },
     getUserInfo() {
+      this.getProfilePic();
       axios.get(`http://localhost:5000/get_user_info/${this.username}`)
         .then((response) => {
           if (response.status === 200) {
+            // eslint-disable-next-line
+            console.log(this.profilePic);
             this.bio = response.data.bio;
             this.mail = response.data.mail;
             this.phone = response.data.phone;

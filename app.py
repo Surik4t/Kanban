@@ -29,7 +29,7 @@ app.secret_key = APP_SECRET_KEY
 app.config.from_object(__name__)
 app.config["JWT_TOKEN_LOCATION"] = ["headers"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=60)
-app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(hours=24)
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(hours=12)
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
@@ -133,6 +133,17 @@ def upload_user_info():
         cur.close()
         conn.close()
         return jsonify({"error": f"database error: {e}"}), 500
+
+
+@app.route("/picture/<username>", methods=["PUT"])
+def picture(username):
+    path = f"./flask-vue/client/src/imgs/{username}.jpg"
+    if os.path.exists(path):
+        print("path exists")
+        return jsonify({"message": "OK"}), 200
+    else:
+        print("path does not exist")
+        return jsonify({"error": "Picture not found"}), 404
 
 
 @app.route("/refresh", methods=["POST"])
