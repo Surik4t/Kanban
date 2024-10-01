@@ -9,7 +9,7 @@
           width: 250px;
           height: 250px;
           padding-top: 1em;">
-        <div ref="editButtons" :hidden="editHidden">
+        <div class="mt-3" ref="editButtons" :hidden="editHidden">
           <div>
             <b-button class="shadow mb-3 mt-3"
               :hidden="!inputFormHidden"
@@ -39,6 +39,7 @@
               Cancel
             </b-button>
           </div>
+          <p>{{ errorMessage }}</p>
           <div>
             <b-button class="shadow mb-3"
               style="min-width: 75%;"
@@ -81,6 +82,7 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      errorMessage: '',
       currentUser: '',
       username: '',
       bio: '',
@@ -98,9 +100,11 @@ export default {
       this.inputFormHidden = false;
     },
     cancelFileInput() {
+      this.errorMessage = '';
       this.inputFormHidden = true;
     },
     chosenFile(event) {
+      this.errorMessage = '';
       if (event.target.files[0]) {
         this.file = event.target.files[0];
         // eslint-disable-next-line
@@ -108,23 +112,29 @@ export default {
       }
     },
     uploadProfilePic() {
-      const formData = new FormData();
-      formData.append('file', this.file);
-      const path = (`http://localhost:5000/upload_picture/${this.username}`);
-      axios.post(path, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-        .then((response) => {
-          location.reload();
-          // eslint-disable-next-line
-          console.log(response);
+      // eslint-disable-next-line
+      console.log(this.file.type)
+      if (['image/png', 'image/jpeg', 'image/svg'].includes(this.file.type)) {
+        const formData = new FormData();
+        formData.append('file', this.file);
+        const path = (`http://localhost:5000/upload_picture/${this.username}`);
+        axios.post(path, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.error(error);
-        });
+          .then((response) => {
+            location.reload();
+            // eslint-disable-next-line
+            console.log(response);
+          })
+          .catch((error) => {
+            // eslint-disable-next-line
+            console.error(error);
+          });
+      } else {
+        this.errorMessage = 'Unsupported media type.';
+      }
     },
     getProfilePic() {
       axios.put(`http://localhost:5000/picture/${this.username}`)
