@@ -9,42 +9,44 @@
           width: 250px;
           height: 250px;
           padding-top: 1em;">
-        <div>
-          <b-button class="shadow mb-3 mt-3"
-            :hidden="!inputFormHidden"
-            style="min-width: 75%;"
-            pill variant="outline-info"
-            @click="fileInput">
-            Change profile pic
-          </b-button>
-        </div>
-        <div class="mb-3" :hidden="inputFormHidden" style="padding-inline: 5%;">
-          <input class="form-control shadow mt-3"
-          ref="fileInputForm"
-          type="file"
-          accept="image/*"
-          @change="chosenFile">
-        </div>
-        <div class="mb-5" :hidden="inputFormHidden">
-          <b-button class="shadow"
-            pill variant="outline-info"
-            @click="uploadProfilePic">
-            Save
-          </b-button>
-          <b-button class="shadow"
-            style=""
-            pill variant="outline-danger"
-            @click="cancelFileInput">
-            Cancel
-          </b-button>
-        </div>
-        <div>
-          <b-button class="shadow mb-3"
-            style="min-width: 75%;"
-            pill variant="info"
-            @click="toEditProfilePage">
-            Edit profile
-          </b-button>
+        <div ref="editButtons" :hidden="editHidden">
+          <div>
+            <b-button class="shadow mb-3 mt-3"
+              :hidden="!inputFormHidden"
+              style="min-width: 75%;"
+              pill variant="outline-info"
+              @click="fileInput">
+              Change profile pic
+            </b-button>
+          </div>
+          <div class="mb-3" :hidden="inputFormHidden" style="padding-inline: 5%;">
+            <input class="form-control shadow mt-3"
+            ref="fileInputForm"
+            type="file"
+            accept="image/*"
+            @change="chosenFile">
+          </div>
+          <div class="mb-5" :hidden="inputFormHidden">
+            <b-button class="shadow"
+              pill variant="outline-info"
+              @click="uploadProfilePic">
+              Save
+            </b-button>
+            <b-button class="shadow"
+              style=""
+              pill variant="outline-danger"
+              @click="cancelFileInput">
+              Cancel
+            </b-button>
+          </div>
+          <div>
+            <b-button class="shadow mb-3"
+              style="min-width: 75%;"
+              pill variant="info"
+              @click="toEditProfilePage">
+              Edit profile
+            </b-button>
+          </div>
         </div>
       </div>
       <div class="right-side">
@@ -79,10 +81,12 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      currentUser: '',
       username: '',
       bio: '',
       mail: '',
       phone: '',
+      editHidden: true,
       inputFormHidden: true,
       file: {},
       // eslint-disable-next-line
@@ -141,7 +145,7 @@ export default {
         { withCredentials: true, headers: { Authorization: `Bearer ${token}` } })
         .then((response) => {
           if (response.status === 200) {
-            this.username = response.data.user;
+            this.currentUser = response.data.user;
             this.getUserInfo();
           }
         })
@@ -166,6 +170,7 @@ export default {
         });
     },
     getUserInfo() {
+      this.username = location.pathname.split('/').pop();
       this.getProfilePic();
       axios.get(`http://localhost:5000/get_user_info/${this.username}`)
         .then((response) => {
@@ -173,6 +178,9 @@ export default {
             this.bio = response.data.bio;
             this.mail = response.data.mail;
             this.phone = response.data.phone;
+          }
+          if (this.username === this.currentUser) {
+            this.editHidden = false;
           }
         })
         .catch((error) => {

@@ -46,6 +46,7 @@ export default {
           if (response.status === 200) {
             const user = response.data.user;
             this.$router.push(`/profile/${user}`);
+            location.reload();
           }
         })
         .catch((error) => {
