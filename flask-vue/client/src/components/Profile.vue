@@ -8,13 +8,34 @@
           border: 2px;
           width: 250px;
           height: 250px;
-          padding-top: 1em;
-          background: url('./static/default.jpg')">
+          padding-top: 1em;">
         <div>
           <b-button class="shadow mb-3 mt-3"
+            :hidden="!inputFormHidden"
             style="min-width: 75%;"
-            pill variant="info">
-            Edit profile picture
+            pill variant="outline-info"
+            @click="fileInput">
+            Change profile pic
+          </b-button>
+        </div>
+        <div class="mb-3" :hidden="inputFormHidden" style="padding-inline: 5%;">
+          <input class="form-control shadow mt-3"
+          ref="fileInputForm"
+          type="file"
+          accept="image/*"
+          @change="chosenFile">
+        </div>
+        <div class="mb-5" :hidden="inputFormHidden">
+          <b-button class="shadow"
+            pill variant="outline-info"
+            @click="uploadProfilePic">
+            Save
+          </b-button>
+          <b-button class="shadow"
+            style=""
+            pill variant="outline-danger"
+            @click="cancelFileInput">
+            Cancel
           </b-button>
         </div>
         <div>
@@ -22,12 +43,12 @@
             style="min-width: 75%;"
             pill variant="info"
             @click="toEditProfilePage">
-            Edit personal information
+            Edit profile
           </b-button>
         </div>
       </div>
       <div class="right-side">
-        <table class="table table-bordered" style="max-width: 750px;">
+        <table class="table table-bordered" style="width: 600px;">
           <tbody>
             <tr class="table-primary">
               <th style="width:20%" scope="row">Username</th>
@@ -62,11 +83,45 @@ export default {
       bio: '',
       mail: '',
       phone: '',
+      inputFormHidden: true,
+      file: {},
       // eslint-disable-next-line
       profilePic: require('../imgs/default.jpg'),
     };
   },
   methods: {
+    fileInput() {
+      this.inputFormHidden = false;
+    },
+    cancelFileInput() {
+      this.inputFormHidden = true;
+    },
+    chosenFile(event) {
+      if (event.target.files[0]) {
+        this.file = event.target.files[0];
+        // eslint-disable-next-line
+        console.log(this.file);
+      }
+    },
+    uploadProfilePic() {
+      const formData = new FormData();
+      formData.append('file', this.file);
+      const path = (`http://localhost:5000/upload_picture/${this.username}`);
+      axios.post(path, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+        .then((response) => {
+          location.reload();
+          // eslint-disable-next-line
+          console.log(response);
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+        });
+    },
     getProfilePic() {
       axios.put(`http://localhost:5000/picture/${this.username}`)
         .then((response) => {
@@ -115,8 +170,6 @@ export default {
       axios.get(`http://localhost:5000/get_user_info/${this.username}`)
         .then((response) => {
           if (response.status === 200) {
-            // eslint-disable-next-line
-            console.log(this.profilePic);
             this.bio = response.data.bio;
             this.mail = response.data.mail;
             this.phone = response.data.phone;

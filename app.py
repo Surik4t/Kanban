@@ -146,6 +146,18 @@ def picture(username):
         return jsonify({"error": "Picture not found"}), 404
 
 
+@app.route("/upload_picture/<username>", methods=["POST"])
+def upload_picture(username):
+    file = request.files["file"]
+    binary_data = file.read()
+    try:
+        with open(f"./flask-vue/client/src/imgs/{username}.jpg", "wb") as image:
+            image.write(binary_data)
+    except Exception as e:
+        return jsonify({"error": f"error uploading the image: {e}"}), 500
+    return jsonify({"message": "Profile picture uploaded"})
+
+
 @app.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh():
