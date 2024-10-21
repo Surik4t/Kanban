@@ -71,6 +71,12 @@
             </tr>
           </tbody>
         </table>
+        <b-button class="shadow"
+        :hidden="editHidden"
+        pill variant="info"
+        @click="toBoards">
+         My boards
+         </b-button>
       </div>
     </div>
   </div>
@@ -96,6 +102,9 @@ export default {
     };
   },
   methods: {
+    toBoards() {
+      this.$router.push(`/boards/${this.currentUser}`);
+    },
     fileInput() {
       this.inputFormHidden = false;
     },

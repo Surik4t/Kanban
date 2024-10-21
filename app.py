@@ -36,8 +36,6 @@ bcrypt = Bcrypt(app)
 # enable CORS
 CORS(app, supports_credentials=True, origins=["http://localhost:8080"])
 
-USERS = {"test": "test"}
-
 
 # connection to DB
 def db_connection():
@@ -280,6 +278,50 @@ def revoke_refresh_token():
     cur.close()
     conn.close()
     return response
+
+
+BOARDS = [
+  {
+    "id": uuid.uuid4().hex,
+    "title": "kanban test1",
+    "description": "kanban description test",
+    "user": "testuser",
+  },
+  {
+    "id": uuid.uuid4().hex,
+    "title": "2",
+    "description": "2222",
+    "user": "",
+  },
+]
+
+
+# BOARDS 
+@app.route("/boards/<user>/get", methods=["GET"])
+def get_boards(user):
+  boards = [board for board in BOARDS if board["user"] == user]
+  response = jsonify({"boards": boards})
+  return response
+
+@app.route("/boards/<user>/add", methods=["POST"])
+def add_board(user):
+  data = request.get_json()
+  new_kanban = {
+    "id": uuid.uuid4().hex,
+    "title": data["title"],
+    "description": data["description"],
+    "user": user,
+  }
+  BOARDS.append(new_kanban)
+  return jsonify({"message": "kanban created"})
+
+@app.route("/boards/<user>/change", methods=["PUT", "DELETE"])
+def change_boards():
+  if request.method == "PUT":
+    return
+  elif request.method == "DELETE":
+    return
+
 
 
 # COLUMN METHODS

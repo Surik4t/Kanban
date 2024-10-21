@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import Home from '@/components/Home';
 import Kanban from '@/components/Kanban';
+import Boards from '@/components/Boards';
 import AuthPage from '@/components/AuthPage';
 import Profile from '@/components/Profile';
 import ProfileEdit from '@/components/ProfileEdit';
@@ -24,6 +25,11 @@ export default new Router({
       path: '/kanban',
       name: 'Kanban',
       component: Kanban,
+    },
+    {
+      path: '/boards/:id',
+      name: 'Boards',
+      component: Boards,
     },
     {
       path: '/profile-edit',
