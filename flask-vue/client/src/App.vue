@@ -16,10 +16,10 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <button class="nav-link" @click="profilePageRedirect">Profile</button>
+              <button class="nav-link" @click="toProfile">Profile</button>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/kanban">Board</a>
+              <button class="nav-link" @click="toBoards">Boards</button>
             </li>
           </ul>
         </div>
@@ -38,41 +38,85 @@ import axios from 'axios';
 export default {
   name: 'App',
   methods: {
-    profilePageRedirect() {
-      const token = localStorage.getItem('access_token');
-      axios.get('http://localhost:5000/get_session',
-        { withCredentials: true, headers: { Authorization: `Bearer ${token}` } })
-        .then((response) => {
-          if (response.status === 200) {
-            const user = response.data.user;
+    toProfile() {
+      this.getUser()
+        .then((user) => {
+          if (user != null) {
             this.$router.push(`/profile/${user}`);
-            location.reload();
+          } else {
+            // eslint-disable-next-line
+            console.log(user);
+            this.$router.push('/auth');
           }
         })
         .catch((error) => {
-          if (error.response.status === 401) {
-            this.refreshToken();
-          } else {
-            this.$router.push('/auth');
-            // eslint-disable-next-line
-            console.error(error);
-          }
+          // eslint-disable-next-line
+          console.error('Error fetching user:', error);
+          this.$router.push('/auth');
         });
     },
-    refreshToken() {
-      const refreshToken = localStorage.getItem('refresh_token');
-      axios.post('http://localhost:5000/refresh', {},
-        { withCredentials: true, headers: { Authorization: `Bearer ${refreshToken}` } })
-        .then((response) => {
-          localStorage.setItem('access_token', response.data.access_token);
-          const user = response.data.user;
-          this.$router.push(`/profile/${user}`);
+    toBoards() {
+      this.getUser()
+        .then((user) => {
+          if (user != null) {
+            this.$router.push(`/boards/${user}`);
+          } else {
+            // eslint-disable-next-line
+            console.log(user);
+            this.$router.push('/auth');
+          }
         })
         .catch((error) => {
-          this.$router.push('/auth');
           // eslint-disable-next-line
-          console.error(error);
+          console.error('Error fetching user:', error);
+          this.$router.push('/auth');
         });
+    },
+
+    async getUser() {
+      try {
+        const token = localStorage.getItem('access_token');
+        const response = await axios.get('http://localhost:5000/get_session', {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.status === 200) {
+          const user = response.data.user;
+          // eslint-disable-next-line
+          console.log(user);
+          return user;
+        }
+        return null;
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          return this.refreshToken();
+        }
+        // eslint-disable-next-line
+        console.error('Error fetching session:', error);
+        return null;
+      }
+    },
+
+    async refreshToken() {
+      try {
+        const refreshToken = localStorage.getItem('refresh_token');
+        const response = await axios.post('http://localhost:5000/refresh', {}, {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${refreshToken}` },
+        });
+
+        if (response.status === 200) {
+          localStorage.setItem('access_token', response.data.access_token);
+          const user = response.data.user;
+          return user;
+        }
+        return null;
+      } catch (error) {
+        // eslint-disable-next-line
+        console.error('Error refreshing token:', error);
+        return null;
+      }
     },
     logout() {
       const token = localStorage.getItem('access_token');

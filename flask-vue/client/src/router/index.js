@@ -22,7 +22,7 @@ export default new Router({
       component: AuthPage,
     },
     {
-      path: '/kanban',
+      path: '/kanban/:user/:board',
       name: 'Kanban',
       component: Kanban,
     },

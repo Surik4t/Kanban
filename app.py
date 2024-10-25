@@ -11,6 +11,8 @@ from flask_jwt_extended import (
     get_jwt_identity,
     get_jwt,
 )
+from sqlalchemy.orm import Session
+import sqlalchemy as db
 import psycopg2, os
 import uuid
 
@@ -38,6 +40,32 @@ CORS(app, supports_credentials=True, origins=["http://localhost:8080"])
 
 
 # connection to DB
+path = f"postgresql+psycopg2://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+engine = db.create_engine(path)
+conn = engine.connect()
+metadata = db.MetaData()
+
+columns = db.Table(
+    "columns",
+    metadata,
+    db.Column("pos", db.Integer),
+    db.Column("uuid", db.Uuid),
+    db.Column("title", db.VARCHAR(30)),
+    db.Column("board_id", db.Uuid),
+)
+
+cards = db.Table(
+    "cards",
+    metadata,
+    db.Column("id", db.Uuid),
+    db.Column("column_id", db.Uuid),
+    db.Column("priority", db.VARCHAR),
+    db.Column("header", db.VARCHAR),
+    db.Column("text", db.VARCHAR),
+    db.Column("index", db.Integer),
+)
+
+
 def db_connection():
     try:
         conn = psycopg2.connect(
@@ -281,52 +309,108 @@ def revoke_refresh_token():
 
 
 BOARDS = [
-  {
-    "id": uuid.uuid4().hex,
-    "title": "kanban test1",
-    "description": "kanban description test",
-    "user": "testuser",
-  },
-  {
-    "id": uuid.uuid4().hex,
-    "title": "2",
-    "description": "2222",
-    "user": "",
-  },
+    {
+        "id": uuid.uuid4().hex,
+        "title": "kanban test1",
+        "description": "kanban description test",
+        "user": "testuser",
+    },
+    {
+        "id": uuid.uuid4().hex,
+        "title": "2",
+        "description": "2222",
+        "user": "",
+    },
 ]
 
 
-# BOARDS 
-@app.route("/boards/<user>/get", methods=["GET"])
+# BOARDS
+@app.route("/boards/get/<user>", methods=["GET"])
 def get_boards(user):
-  boards = [board for board in BOARDS if board["user"] == user]
-  response = jsonify({"boards": boards})
-  return response
+    boards = [board for board in BOARDS if board["user"] == user]
+    response = jsonify({"boards": boards})
+    return response
 
-@app.route("/boards/<user>/add", methods=["POST"])
-def add_board(user):
-  data = request.get_json()
-  new_kanban = {
-    "id": uuid.uuid4().hex,
-    "title": data["title"],
-    "description": data["description"],
-    "user": user,
-  }
-  BOARDS.append(new_kanban)
-  return jsonify({"message": "kanban created"})
 
-@app.route("/boards/<user>/change", methods=["PUT", "DELETE"])
+@app.route("/boards/add", methods=["POST"])
+def create_board():
+    data = request.get_json()
+    new_kanban = {
+        "id": uuid.uuid4().hex,
+        "title": data["title"],
+        "description": data["description"],
+        "user": data["user"],
+    }
+    BOARDS.append(new_kanban)
+    init_columns(new_kanban["id"])
+    return jsonify({"message": "kanban created"})
+
+
+def init_columns(board_id):
+    try:
+        query = columns.insert().values(
+            [
+                {
+                    "pos": 0,
+                    "uuid": uuid.uuid4().hex,
+                    "title": "To Do",
+                    "board_id": board_id,
+                },
+                {
+                    "pos": 1,
+                    "uuid": uuid.uuid4().hex,
+                    "title": "In Progress",
+                    "board_id": board_id,
+                },
+                {
+                    "pos": 2,
+                    "uuid": uuid.uuid4().hex,
+                    "title": "Done",
+                    "board_id": board_id,
+                },
+            ]
+        )
+        conn.execute(query)
+        conn.commit()
+    except Exception as e:
+        print(e)
+
+
+@app.route("/boards/edit", methods=["PUT"])
 def change_boards():
-  if request.method == "PUT":
-    return
-  elif request.method == "DELETE":
-    return
+    data = request.get_json()
+    for board in BOARDS:
+        if board["id"] == data["id"]:
+            board["title"] = data["title"]
+            board["description"] = data["description"]
+            return jsonify({"message": "changes saved"})
+        else:
+            return jsonify({"error": "board id not found"}, 404)
 
+
+@app.route("/boards/delete/<id>", methods=["PUT"])
+def delete(id):
+    delete_board(id)
+    with Session(engine) as session:
+        query = db.select(columns.c.uuid).where(columns.c.board_id == id)
+        selected_columns = conn.execute(query).fetchall()
+        for column in selected_columns:
+            session.execute(db.delete(cards).where(cards.c.column_id == column.uuid))
+        session.execute(db.delete(columns).where(columns.c.board_id == id))
+        # add to session: delete board
+        session.commit()
+    return jsonify({"message": "board removed"})
+
+
+def delete_board(id):
+    global BOARDS
+    BOARDS = [board for board in BOARDS if board["id"] != id]
+    return
 
 
 # COLUMN METHODS
-@app.route("/kanban/columns", methods=["GET", "POST"])
-def all_columns():
+@app.route("/kanban/columns/<board_id>", methods=["GET", "POST"])
+def all_columns(board_id):
     response_object = {"status": "success"}
     conn = db_connection()
     cur = conn.cursor()
@@ -350,7 +434,10 @@ def all_columns():
 
     elif request.method == "GET":
         try:
-            cur.execute("SELECT * FROM columns ORDER BY pos ASC;")
+            cur.execute(
+                "SELECT * FROM columns WHERE board_id = %s ORDER BY pos ASC;",
+                (board_id,),
+            )
             columns = cur.fetchall()
             keys = ["pos", "id", "title"]
             COLUMNS = [dict(zip(keys, column)) for column in columns]

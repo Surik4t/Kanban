@@ -108,7 +108,8 @@ export default {
   },
   methods: {
     getColumns() {
-      const path = 'http://localhost:5000/kanban/columns';
+      const boardId = location.pathname.split('/').pop();
+      const path = `http://localhost:5000/kanban/columns/${boardId}`;
       axios.get(path)
         .then((res) => {
           this.columns = res.data.columns;
