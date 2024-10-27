@@ -409,7 +409,7 @@ def delete_board(id):
 
 
 # COLUMN METHODS
-@app.route("/kanban/columns/<board_id>", methods=["GET", "POST"])
+@app.route("/kanban/<board_id>/columns", methods=["GET", "POST"])
 def all_columns(board_id):
     response_object = {"status": "success"}
     conn = db_connection()
@@ -629,8 +629,8 @@ def single_card(card_id):
 
 
 # Updating kanban on card swap
-@app.route("/kanban/updateBoard/", methods=["PUT"])
-def updateBoard():
+@app.route("/kanban/cards/swap", methods=["PUT"])
+def updateCardsPosition():
     response_object = {"status": "success"}
     conn = db_connection()
     cur = conn.cursor()

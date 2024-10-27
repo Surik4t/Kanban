@@ -109,7 +109,7 @@ export default {
   methods: {
     getColumns() {
       const boardId = location.pathname.split('/').pop();
-      const path = `http://localhost:5000/kanban/columns/${boardId}`;
+      const path = `http://localhost:5000/kanban/${boardId}/columns`;
       axios.get(path)
         .then((res) => {
           this.columns = res.data.columns;
@@ -121,7 +121,7 @@ export default {
     },
     addColumn() {
       const boardId = location.pathname.split('/').pop();
-      const path = `http://localhost:5000/kanban/columns/${boardId}`;
+      const path = `http://localhost:5000/kanban/${boardId}/columns`;
       const payload = { pos: this.columns.length };
       axios.post(path, payload)
         .then(() => {
@@ -203,7 +203,7 @@ export default {
         });
     },
     updateKanban(payload) {
-      const path = 'http://localhost:5000/kanban/updateBoard/';
+      const path = 'http://localhost:5000/kanban/cards/swap';
       axios.put(path, payload);
     },
     onAddCard(columnId, index) {
