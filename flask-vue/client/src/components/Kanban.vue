@@ -120,7 +120,8 @@ export default {
         });
     },
     addColumn() {
-      const path = 'http://localhost:5000/kanban/columns';
+      const boardId = location.pathname.split('/').pop();
+      const path = `http://localhost:5000/kanban/columns/${boardId}`;
       const payload = { pos: this.columns.length };
       axios.post(path, payload)
         .then(() => {
@@ -132,7 +133,8 @@ export default {
         });
     },
     onColumnSwap(pos, direction) {
-      const path = `http://localhost:5000/kanban/columns/swap/?pos=${pos}&direction=${direction}`;
+      const boardId = location.pathname.split('/').pop();
+      const path = `http://localhost:5000/kanban/${boardId}/columns/swap/?pos=${pos}&direction=${direction}`;
       axios.put(path)
         .then(() => {
           this.getColumns();

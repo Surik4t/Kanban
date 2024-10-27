@@ -1,20 +1,22 @@
 <template>
   <div class="auth-page">
     <div class="auth-form">
-      <input type="text" class="form-control mb-4 shadow"
-      v-model="username" placeholder="Username">
-      <div class="input-group mb-3 shadow" style="border-radius: 10px;">
-        <input type="password" class="form-control" ref="passwordInput1"
-        v-model="password1" placeholder="Password">
-        <div class="input-group-text">
-          <input class="form-check-input mt-0" type="checkbox" @change="showPass1">
+      <div>
+        <input type="text" class="form-control mb-4 shadow"
+        v-model="username" placeholder="Username">
+        <div class="input-group mb-3 shadow" style="border-radius: 10px;">
+          <input type="password" class="form-control" ref="passwordInput1"
+          v-model="password1" placeholder="Password">
+          <div class="input-group-text">
+            <input class="form-check-input mt-0" type="checkbox" @change="showPass1">
+          </div>
         </div>
-      </div>
-      <div class="input-group mb-4 shadow" style="border-radius: 10px;" :hidden="!signingUp">
-        <input type="password" class="form-control" ref="passwordInput2"
-        v-model="password2" placeholder="Repeat password">
-        <div class="input-group-text">
-          <input class="form-check-input mt-0" type="checkbox" @change="showPass2">
+        <div class="input-group mb-4 shadow" style="border-radius: 10px;" :hidden="!signingUp">
+          <input type="password" class="form-control" ref="passwordInput2"
+          v-model="password2" placeholder="Repeat password">
+          <div class="input-group-text">
+            <input class="form-check-input mt-0" type="checkbox" @change="showPass2">
+          </div>
         </div>
       </div>
       <b-button class="shadow mb-5"
@@ -27,7 +29,7 @@
       </b-button>
       <p>{{ message }}</p>
       <p :hidden="regMessageHidden" ref="registrationCompleteMessage">
-      Acoount created, now you may <a href="/auth">sign in</a>.</p>
+      Acoount created, now you may <a href="/auth">Log in</a>.</p>
       <p :hidden="signingUp"> Don't have an account yet? </p>
       <b-button class="shadow mb-5"
         ref="signUpButton"
@@ -37,6 +39,8 @@
         @click="onSignUpClick">
         Sign up
       </b-button>
+      <p :hidden="!signingUp">
+      Have an account? <a href="/auth">Log in</a>.</p>
     </div>
   </div>
 </template>

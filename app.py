@@ -421,12 +421,13 @@ def all_columns(board_id):
             "pos": post_data.get("pos"),
             "id": uuid.uuid4().hex,
             "title": "New column",
+            "board_id": board_id,
         }
         try:
             cur.execute(
-                f"""INSERT INTO columns(pos, uuid, title)
-                        VALUES (%s, %s, %s);""",
-                (new_column["pos"], new_column["id"], new_column["title"]),
+                f"""INSERT INTO columns(pos, uuid, title, board_id)
+                        VALUES (%s, %s, %s, %s);""",
+                (new_column["pos"], new_column["id"], new_column["title"], new_column["board_id"]),
             )
             conn.commit()
         except Exception as e:
@@ -511,8 +512,8 @@ def single_column():
     return jsonify(response_object)
 
 
-@app.route("/kanban/columns/swap/", methods=["PUT"])
-def swap_columns():
+@app.route("/kanban/<board_id>/columns/swap/", methods=["PUT"])
+def swap_columns(board_id):
     response_object = {"statis": "success"}
     current_pos = int(request.args.get("pos"))
     direction = request.args.get("direction")
@@ -521,38 +522,38 @@ def swap_columns():
     try:
         cur.execute(
             """SELECT uuid, title FROM columns
-                    WHERE pos = %s;""",
-            (current_pos,),
+                    WHERE pos = %s AND board_id = %s;""",
+            (current_pos, board_id,),
         )
         data = cur.fetchone()
         temp = {"uuid": data[0], "title": data[1]}
         if direction == "left":
             cur.execute(
                 """SELECT pos, uuid, title FROM columns
-                        WHERE pos = %s - 1;""",
-                (current_pos,),
+                        WHERE pos = %s - 1 AND board_id = %s;""",
+                (current_pos, board_id,),
             )
         elif direction == "right":
             cur.execute(
                 """SELECT pos, uuid, title FROM columns
-                        WHERE pos = %s + 1;""",
-                (current_pos,),
+                        WHERE pos = %s + 1 AND board_id = %s;""",
+                (current_pos, board_id,),
             )
         data = cur.fetchone()
         target = {"pos": data[0], "uuid": data[1], "title": data[2]}
         cur.execute(
             """UPDATE columns
                     SET uuid = %s, title = %s
-                    WHERE pos = %s;
+                    WHERE pos = %s AND board_id = %s;
                     """,
-            (temp["uuid"], temp["title"], target["pos"]),
+            (temp["uuid"], temp["title"], target["pos"], board_id,),
         )
         cur.execute(
             """UPDATE columns
                     SET uuid = %s, title = %s
-                    WHERE pos = %s;
+                    WHERE pos = %s AND board_id = %s;
                     """,
-            (target["uuid"], target["title"], current_pos),
+            (target["uuid"], target["title"], current_pos, board_id,),
         )
         conn.commit()
     except Exception as e:

@@ -19,7 +19,7 @@
               <button class="nav-link" @click="toProfile">Profile</button>
             </li>
             <li class="nav-item">
-              <button class="nav-link" @click="toBoards">Boards</button>
+              <button class="nav-link" @click="toBoards">My boards</button>
             </li>
           </ul>
         </div>
