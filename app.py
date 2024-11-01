@@ -65,6 +65,15 @@ cards = db.Table(
     db.Column("index", db.Integer),
 )
 
+boards = db.Table(
+    "boards",
+    metadata,
+    db.Column("id", db.Uuid),
+    db.Column("title", db.VARCHAR),
+    db.Column("description", db.VARCHAR),
+    db.Column("user", db.VARCHAR),
+)
+
 
 def db_connection():
     try:
@@ -308,28 +317,17 @@ def revoke_refresh_token():
     return response
 
 
-BOARDS = [
-    {
-        "id": uuid.uuid4().hex,
-        "title": "kanban test1",
-        "description": "kanban description test",
-        "user": "testuser",
-    },
-    {
-        "id": uuid.uuid4().hex,
-        "title": "2",
-        "description": "2222",
-        "user": "",
-    },
-]
-
-
 # BOARDS
 @app.route("/boards/get/<user>", methods=["GET"])
 def get_boards(user):
-    boards = [board for board in BOARDS if board["user"] == user]
-    response = jsonify({"boards": boards})
-    return response
+    try:
+        query = db.select(boards).where(boards.c.user == user)
+        fetched_boards = conn.execute(query).fetchall()
+        keys = ["id", "title", "description", "user"]
+        boards_list = [dict(zip(keys, board)) for board in fetched_boards]
+        return jsonify({"boards": boards_list})
+    except Exception as e:
+        return jsonify({"error": e})
 
 
 @app.route("/boards/add", methods=["POST"])
@@ -341,10 +339,15 @@ def create_board():
         "description": data["description"],
         "user": data["user"],
     }
-    global BOARDS
-    BOARDS.append(new_kanban)
-    init_columns(new_kanban["id"])
-    return jsonify({"message": "kanban created"})
+    try:
+        query = db.insert(boards).values(new_kanban)
+        conn.execute(query)
+        init_columns(new_kanban["id"])
+        conn.commit()
+        response = jsonify({"message": "kanban created"})
+    except Exception as e:
+        response = jsonify({"error": e})
+    return response
 
 
 def init_columns(board_id):
@@ -380,32 +383,36 @@ def init_columns(board_id):
 @app.route("/boards/edit", methods=["PUT"])
 def change_boards():
     data = request.get_json()
-    for board in BOARDS:
-        if board["id"] == data["id"]:
-            board["title"] = data["title"]
-            board["description"] = data["description"]
-            return jsonify({"message": "changes saved"})
-    return jsonify({"error": "board id not found"}, 404)
+    try:
+        query = (
+            db.update(boards)
+            .where(boards.c.id == data["id"])
+            .values(title=data["title"], description=data["description"])
+        )
+        conn.execute(query)
+        conn.commit()
+        return jsonify({"message": "changes saved"})
+    except Exception as e:
+        return jsonify({"error": e})
 
 
 @app.route("/boards/delete/<id>", methods=["PUT"])
 def delete(id):
-    delete_board(id)
-    with Session(engine) as session:
-        query = db.select(columns.c.uuid).where(columns.c.board_id == id)
-        selected_columns = conn.execute(query).fetchall()
-        for column in selected_columns:
-            session.execute(db.delete(cards).where(cards.c.column_id == column.uuid))
-        session.execute(db.delete(columns).where(columns.c.board_id == id))
-        # add to session: delete board
-        session.commit()
+    try:
+        with Session(engine) as session:
+            session.execute(db.delete(boards).where(boards.c.id == id))
+            query = db.select(columns.c.uuid).where(columns.c.board_id == id)
+            selected_columns = conn.execute(query).fetchall()
+            for column in selected_columns:
+                session.execute(
+                    db.delete(cards).where(cards.c.column_id == column.uuid)
+                )
+            session.execute(db.delete(columns).where(columns.c.board_id == id))
+            # add to session: delete board
+            session.commit()
+    except Exception as e:
+        return jsonify({"error": e})
     return jsonify({"message": "board removed"})
-
-
-def delete_board(id):
-    global BOARDS
-    BOARDS = [board for board in BOARDS if board["id"] != id]
-    return
 
 
 # COLUMN METHODS
