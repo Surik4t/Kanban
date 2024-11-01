@@ -2,9 +2,10 @@
   <div class="boards-list">
     <div class="container">
       <h2> {{ errorMessage }}</h2>
-      <h3> Kanban boards </h3>
+      <h3 :hidden="!isAuthorized"> Kanban boards </h3>
       <div class="list">
         <table
+        :hidden="!isAuthorized"
         class="table table-hover table-bordered table-primary shadow"
         style="text-align: left;">
           <thead>
@@ -63,7 +64,7 @@
           v-model="editKanbanForm.description"
           />
       </b-modal>
-      <b-button pill variant="info" @click="newKanban"> new kanban </b-button>
+      <b-button pill variant="info" @click="newKanban" :hidden="!isAuthorized"> new kanban </b-button>
     </div>
     <b-modal ref="deleteConfirmationModal" @ok="deleteKanban">
         <h2> Are you sure you want to delete '{{ editKanbanForm.title }}' board?</h2>
@@ -78,6 +79,7 @@ export default {
   data() {
     return {
       errorMessage: '',
+      isAuthorized: false,
       user: '',
       boards: [],
       editKanbanForm: {
@@ -162,6 +164,7 @@ export default {
       const currentUser = await this.getUser();
       if (currentUser != null && currentUser === this.user) {
         this.getBoards();
+        this.isAuthorized = true;
       } else {
         this.errorMessage = '403 Forbidden';
       }
