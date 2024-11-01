@@ -220,7 +220,7 @@ export default {
 <style>
 .profile-page {
   height: 93vh;
-  padding-top: 100px;
+  padding-top: 50px;
   display: flex;
   justify-content: center;
   background-color: aliceblue;

@@ -2,32 +2,37 @@
   <div class="boards-list">
     <div class="container">
       <h2> {{ errorMessage }}</h2>
+      <h3> Kanban boards </h3>
       <div class="list">
-        <table class="table table-hover table-bordered"
-        style="text-align: left; background-color: lightblue;">
+        <table
+        class="table table-hover table-bordered table-primary shadow"
+        style="text-align: left;">
           <thead>
             <tr>
               <th scope="col">Title</th>
               <th scope="col">Description</th>
               <th scope="col"></th>
+              <th scope="col"></th>
             </tr>
           </thead>
-          <tbody class="tbody">
+          <tbody class="tbody table-info">
             <tr v-for="(board, index) in boards" :key="index">
               <td @click="goToBoard(board)">{{ board.title }}</td>
               <td @click="goToBoard(board)">{{ board.description }}</td>
-              <td>
+              <td style="width: 7%;">
                 <b-button
                   class="btn-sm"
                   pill variant="outline-info"
                   @click="onEditKanban(board)">
-                  O
+                  Edit
                 </b-button>
+              </td>
+              <td style="width: 7%;">
                 <b-button
                   class="btn-sm"
                   pill variant="outline-danger"
-                  @click="deleteKanban(board)">
-                  X
+                  @click="onDeleteKanban(board)">
+                  🗑️
                 </b-button>
               </td>
             </tr>
@@ -58,8 +63,11 @@
           v-model="editKanbanForm.description"
           />
       </b-modal>
-      <b-button @click="newKanban"> new kanban </b-button>
+      <b-button pill variant="info" @click="newKanban"> new kanban </b-button>
     </div>
+    <b-modal ref="deleteConfirmationModal" @ok="deleteKanban">
+        <h2> Are you sure you want to delete '{{ editKanbanForm.title }}' board?</h2>
+    </b-modal>
   </div>
 </template>
 
@@ -99,13 +107,18 @@ export default {
           console.error(error);
         });
     },
-    deleteKanban(board) {
-      const path = `http://localhost:5000/boards/delete/${board.id}`;
+    onDeleteKanban(board) {
+      this.$refs.deleteConfirmationModal.show();
+      this.editKanbanForm = board;
+    },
+    deleteKanban() {
+      const path = `http://localhost:5000/boards/delete/${this.editKanbanForm.id}`;
       axios.put(path)
         .then(() => {
           location.reload();
         })
         .catch((error) => {
+          this.errorMessage = error;
           // eslint-disable-next-line
           console.error(error);
         });
@@ -116,19 +129,16 @@ export default {
     },
     editKanban() {
       const path = 'http://localhost:5000/boards/edit';
-      // eslint-disable-next-line
-      console.log(this.editKanbanForm);
       const payload = {
         id: this.editKanbanForm.id,
         title: this.editKanbanForm.title,
         description: this.editKanbanForm.description,
       };
-      // eslint-disable-next-line
-      console.log(this.payload);
       axios.put(path, payload)
         .then(() => {
         })
         .catch((error) => {
+          this.errorMessage = error;
           // eslint-disable-next-line
           console.error(error);
         });
@@ -143,6 +153,7 @@ export default {
           this.boards = response.data.boards;
         })
         .catch((error) => {
+          this.errorMessage = error;
           // eslint-disable-next-line
           console.error(error);
         });
@@ -165,8 +176,6 @@ export default {
 
         if (response.status === 200) {
           const user = response.data.user;
-          // eslint-disable-next-line
-          console.log(user);
           return user;
         }
         return null;
@@ -201,6 +210,7 @@ export default {
     },
   },
   created() {
+    this.errorMessage = '';
     this.user = location.pathname.split('/').pop();
     this.authorizationCheck();
   },
@@ -210,16 +220,14 @@ export default {
 <style>
 .boards-list {
   height: 93vh;
-  padding-top: 100px;
   display: flex;
   justify-content: center;
-  background-color: aliceblue;
+  background-color: rgb(209, 226, 241);
 }
 .container {
   text-align: center;
   max-width:50vw;
   padding: 50px;
-  background-color: rgb(209, 226, 241);
 }
 .tbody {
     cursor: pointer;

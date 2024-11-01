@@ -341,10 +341,8 @@ def create_board():
         "description": data["description"],
         "user": data["user"],
     }
-    print(new_kanban)
     global BOARDS
     BOARDS.append(new_kanban)
-    print(BOARDS)
     init_columns(new_kanban["id"])
     return jsonify({"message": "kanban created"})
 
