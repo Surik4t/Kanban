@@ -92,7 +92,7 @@ def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
         )
         token = cur.fetchone()
     except Exception as e:
-        print(f"exception requesting expired tokens database: {e}")
+        print(f"exception requesting tokens database: {e}")
     cur.close()
     conn.close()
     return token is not None
@@ -341,7 +341,10 @@ def create_board():
         "description": data["description"],
         "user": data["user"],
     }
+    print(new_kanban)
+    global BOARDS
     BOARDS.append(new_kanban)
+    print(BOARDS)
     init_columns(new_kanban["id"])
     return jsonify({"message": "kanban created"})
 
@@ -384,8 +387,7 @@ def change_boards():
             board["title"] = data["title"]
             board["description"] = data["description"]
             return jsonify({"message": "changes saved"})
-        else:
-            return jsonify({"error": "board id not found"}, 404)
+    return jsonify({"error": "board id not found"}, 404)
 
 
 @app.route("/boards/delete/<id>", methods=["PUT"])
@@ -427,7 +429,12 @@ def all_columns(board_id):
             cur.execute(
                 f"""INSERT INTO columns(pos, uuid, title, board_id)
                         VALUES (%s, %s, %s, %s);""",
-                (new_column["pos"], new_column["id"], new_column["title"], new_column["board_id"]),
+                (
+                    new_column["pos"],
+                    new_column["id"],
+                    new_column["title"],
+                    new_column["board_id"],
+                ),
             )
             conn.commit()
         except Exception as e:
@@ -523,7 +530,10 @@ def swap_columns(board_id):
         cur.execute(
             """SELECT uuid, title FROM columns
                     WHERE pos = %s AND board_id = %s;""",
-            (current_pos, board_id,),
+            (
+                current_pos,
+                board_id,
+            ),
         )
         data = cur.fetchone()
         temp = {"uuid": data[0], "title": data[1]}
@@ -531,13 +541,19 @@ def swap_columns(board_id):
             cur.execute(
                 """SELECT pos, uuid, title FROM columns
                         WHERE pos = %s - 1 AND board_id = %s;""",
-                (current_pos, board_id,),
+                (
+                    current_pos,
+                    board_id,
+                ),
             )
         elif direction == "right":
             cur.execute(
                 """SELECT pos, uuid, title FROM columns
                         WHERE pos = %s + 1 AND board_id = %s;""",
-                (current_pos, board_id,),
+                (
+                    current_pos,
+                    board_id,
+                ),
             )
         data = cur.fetchone()
         target = {"pos": data[0], "uuid": data[1], "title": data[2]}
@@ -546,14 +562,24 @@ def swap_columns(board_id):
                     SET uuid = %s, title = %s
                     WHERE pos = %s AND board_id = %s;
                     """,
-            (temp["uuid"], temp["title"], target["pos"], board_id,),
+            (
+                temp["uuid"],
+                temp["title"],
+                target["pos"],
+                board_id,
+            ),
         )
         cur.execute(
             """UPDATE columns
                     SET uuid = %s, title = %s
                     WHERE pos = %s AND board_id = %s;
                     """,
-            (target["uuid"], target["title"], current_pos, board_id,),
+            (
+                target["uuid"],
+                target["title"],
+                current_pos,
+                board_id,
+            ),
         )
         conn.commit()
     except Exception as e:

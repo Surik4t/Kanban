@@ -1,8 +1,10 @@
 <template>
   <div class="boards-list">
     <div class="container">
+      <h2> {{ errorMessage }}</h2>
       <div class="list">
-        <table class="table table-hover table-bordered" style="text-align: left;">
+        <table class="table table-hover table-bordered"
+        style="text-align: left; background-color: lightblue;">
           <thead>
             <tr>
               <th scope="col">Title</th>
@@ -67,7 +69,8 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      user: 'testuser',
+      errorMessage: '',
+      user: '',
       boards: [],
       editKanbanForm: {
         id: '',
@@ -85,7 +88,7 @@ export default {
       const payload = {
         user: this.user,
         title: this.editKanbanForm.title,
-        description: this.editKanbanForm.title,
+        description: this.editKanbanForm.description,
       };
       axios.post(path, payload)
         .then(() => {
@@ -113,16 +116,17 @@ export default {
     },
     editKanban() {
       const path = 'http://localhost:5000/boards/edit';
+      // eslint-disable-next-line
+      console.log(this.editKanbanForm);
       const payload = {
         id: this.editKanbanForm.id,
         title: this.editKanbanForm.title,
         description: this.editKanbanForm.description,
       };
+      // eslint-disable-next-line
+      console.log(this.payload);
       axios.put(path, payload)
-        .then((response) => {
-          if (response.status === 200) {
-            location.reload();
-          }
+        .then(() => {
         })
         .catch((error) => {
           // eslint-disable-next-line
@@ -132,22 +136,73 @@ export default {
     goToBoard(board) {
       this.$router.push(`/kanban/${this.user}/${board.id}`);
     },
-    get_boards() {
+    getBoards() {
       const path = `http://localhost:5000/boards/get/${this.user}`;
       axios.get(path)
         .then((response) => {
           this.boards = response.data.boards;
-          // eslint-disable-next-line
-          console.log(response);
         })
         .catch((error) => {
           // eslint-disable-next-line
           console.error(error);
         });
     },
+    async authorizationCheck() {
+      const currentUser = await this.getUser();
+      if (currentUser != null && currentUser === this.user) {
+        this.getBoards();
+      } else {
+        this.errorMessage = '403 Forbidden';
+      }
+    },
+    async getUser() {
+      try {
+        const token = localStorage.getItem('access_token');
+        const response = await axios.get('http://localhost:5000/get_session', {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.status === 200) {
+          const user = response.data.user;
+          // eslint-disable-next-line
+          console.log(user);
+          return user;
+        }
+        return null;
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          return this.refreshToken();
+        }
+        // eslint-disable-next-line
+        console.error('Error fetching session:', error);
+        return null;
+      }
+    },
+    async refreshToken() {
+      try {
+        const refreshToken = localStorage.getItem('refresh_token');
+        const response = await axios.post('http://localhost:5000/refresh', {}, {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${refreshToken}` },
+        });
+
+        if (response.status === 200) {
+          localStorage.setItem('access_token', response.data.access_token);
+          const user = response.data.user;
+          return user;
+        }
+        return null;
+      } catch (error) {
+        // eslint-disable-next-line
+        console.error('Error refreshing token:', error);
+        return null;
+      }
+    },
   },
   created() {
-    this.get_boards();
+    this.user = location.pathname.split('/').pop();
+    this.authorizationCheck();
   },
 };
 </script>
@@ -164,7 +219,7 @@ export default {
   text-align: center;
   max-width:50vw;
   padding: 50px;
-  background-color: aquamarine;
+  background-color: rgb(209, 226, 241);
 }
 .tbody {
     cursor: pointer;
