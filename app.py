@@ -24,6 +24,7 @@ DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
 DB_HOST = os.getenv("DB_HOST")
+DB_URL = os.getenv("DB_URL")
 
 # instantiate the app
 app = Flask(__name__)
@@ -40,7 +41,7 @@ CORS(app, supports_credentials=True, origins=["http://localhost:8080"])
 
 
 # connection to DB
-path = f"postgresql+psycopg2://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+path = f"{DB_URL}"
 engine = db.create_engine(path)
 conn = engine.connect()
 metadata = db.MetaData()
@@ -62,7 +63,7 @@ cards = db.Table(
     db.Column("priority", db.VARCHAR),
     db.Column("header", db.VARCHAR),
     db.Column("text", db.VARCHAR),
-    db.Column("index", db.Integer),
+    db.Column("card_index", db.Integer),
 )
 
 boards = db.Table(
@@ -172,7 +173,7 @@ def upload_user_info():
 
 @app.route("/picture/<username>", methods=["PUT"])
 def picture(username):
-    path = f"./flask-vue/client/src/imgs/{username}.jpg"
+    path = f"/app/src/img/{username}.jpg"
     if os.path.exists(path):
         print("path exists")
         return jsonify({"message": "OK"}), 200
@@ -186,7 +187,7 @@ def upload_picture(username):
     file = request.files["file"]
     binary_data = file.read()
     try:
-        with open(f"./flask-vue/client/src/imgs/{username}.jpg", "wb") as image:
+        with open(f"/app/src/img/{username}.jpg", "wb") as image:
             image.write(binary_data)
     except Exception as e:
         return jsonify({"error": f"error uploading the image: {e}"}), 500
@@ -456,7 +457,7 @@ def all_columns(board_id):
             COLUMNS = [dict(zip(keys, column)) for column in columns]
             for column in COLUMNS:
                 cur.execute(
-                    """SELECT * FROM cards WHERE column_id = %s ORDER BY index ASC;""",
+                    """SELECT * FROM cards WHERE column_id = %s ORDER BY card_index ASC;""",
                     (column["id"],),
                 )
                 cards_data = cur.fetchall()
@@ -613,7 +614,7 @@ def all_cards():
         )
         try:
             cur.execute(
-                """INSERT INTO cards(id, column_id, priority, header, text, index)
+                """INSERT INTO cards(id, column_id, priority, header, text, card_index)
                         VALUES (%s, %s, %s, %s, %s, %s);""",
                 new_card,
             )
@@ -670,7 +671,7 @@ def updateCardsPosition():
         for column in data:
             for card in column["cards"]:
                 cur.execute(
-                    """UPDATE cards SET column_id = %s, index = %s
+                    """UPDATE cards SET column_id = %s, card_index = %s
                             WHERE id = %s;
                             """,
                     (column["id"], column["cards"].index(card), card["id"]),

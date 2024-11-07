@@ -1,0 +1,39 @@
+services:
+  frontend:
+    build:
+      context: ./vue
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    restart: always
+    volumes:
+      - ./vue/src/assets/img:/app/src/img
+
+  backend:
+    build:
+      context: ./
+    depends_on:
+      - db
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=${DB_URL}
+    command: ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+    restart: always
+    volumes:
+      - ./vue/src/assets/img:/app/src/img
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    restart: always
+
+volumes:
+  postgres_data:
