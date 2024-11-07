@@ -1,5 +1,6 @@
 /.idea
 /.vs
 /.env
-/flask-vue/client/src/imgs/*
-!/flask-vue/client/src/imgs/default.jpg
+/vue/src/assets/imgs/*
+!/vue/src/assets/imgs/default.jpg
+/vue/node_modules
