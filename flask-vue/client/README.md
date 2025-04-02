@@ -1,4 +1,4 @@
-# task_manager
+# Kanban
 
 > my first web project
 
