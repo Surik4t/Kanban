@@ -23,8 +23,6 @@ APP_SECRET_KEY = os.getenv("APP_SECRET_KEY")
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
-DB_HOST = os.getenv("DB_HOST")
-DB_URL = os.getenv("DB_URL")
 
 # instantiate the app
 app = Flask(__name__)
@@ -41,7 +39,7 @@ CORS(app, supports_credentials=True, origins=["http://localhost:8080"])
 
 
 # connection to DB
-path = f"{DB_URL}"
+path = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@db:5432/{DB_NAME}"
 engine = db.create_engine(path)
 conn = engine.connect()
 metadata = db.MetaData()
